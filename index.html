@@ -255,7 +255,7 @@ body {
 .overflow-menu {
   position: absolute;
   top: calc(100% + 4px);
-  left: 24px;
+  left: 24px; /* fallback — repositioned under the overflow button by JS */
   width: 380px;
   max-height: 400px;
   overflow-y: auto;
@@ -1218,7 +1218,14 @@ function renderEntityStrip() {
     }));
   $('#overflowBtn').addEventListener('click', (e) => {
     e.stopPropagation();
-    $('#overflowMenu').classList.toggle('open');
+    const btn = e.currentTarget;
+    const menu = $('#overflowMenu');
+    /* anchor the menu directly under the "+N more" button (strip is the
+       offset parent), clamped so it never spills past the card edge */
+    const maxLeft = strip.clientWidth - 380 /* menu width */ - 24;
+    menu.style.left = Math.max(24, Math.min(btn.offsetLeft, maxLeft)) + 'px';
+    menu.style.top = (btn.offsetTop + btn.offsetHeight + 4) + 'px';
+    menu.classList.toggle('open');
   });
   strip.querySelectorAll('.overflow-item').forEach((item) =>
     item.addEventListener('click', () => {
