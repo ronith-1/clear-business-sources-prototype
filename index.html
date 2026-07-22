@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CLEAR Analysis — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+:root {
+  /* Typography */
+  --font-family: 'Inter', sans-serif;
+  --font-h1: 600 24px/32px var(--font-family);
+  --font-h2: 600 20px/28px var(--font-family);
+  --font-h3: 600 16px/24px var(--font-family);
+  --font-body-large: 400 16px/24px var(--font-family);
+  --font-body1-heavy: 600 14px/20px var(--font-family);
+  --font-body1: 400 14px/20px var(--font-family);
+  --font-body2-medium: 600 13px/18px var(--font-family);
+  --font-body2: 400 13px/18px var(--font-family);
+  --font-secondary: 400 12px/16px var(--font-family);
+  --font-label: 400 12px/16px var(--font-family);
+  --font-overline: 600 11px/14px var(--font-family);
+
+  /* Text colours */
+  --color-text-title: #171C26;
+  --color-text-primary: #333333;
+  --color-text-secondary: #616161;
+  --color-text-tertiary: #A2A0A0;
+  --color-text-disabled: #A8ACB4;
+
+  /* Brand */
+  --color-brand-primary: #553EF1;
+  --color-brand-hover: #2A24B0;
+  --color-brand-text: #443EC1;
+
+  /* Surfaces */
+  --color-surface-white: #FFFFFF;
+  --color-surface-z1: #F5F6F8;
+  --color-surface-z2: #F8F9FE;
+  --color-surface-table-header: #F2F2F2;
+
+  /* Borders */
+  --color-border: #E6E6E6;
+
+  /* Status */
+  --color-pass: #14804A;
+  --color-fail: #C83532;
+  --review-text: #9A4524;
+  --review-bg: #FFF5DC;
+  --pass-bg: #E6F9F3;
+  --pass-badge-text: #006644;
+  --fail-bg: #F9E9E5;
+  --fail-badge-text: #BF2600;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-dropdown: 0 4px 12px rgba(0,0,0,0.10);
+  --shadow-modal: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  background: var(--color-surface-z1);
+  min-height: 100vh;
+}
+
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 20px;
+  vertical-align: middle;
+}
+
+/* ============ Top Bar ============ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: var(--color-surface-white);
+  border-bottom: 1px solid var(--color-border);
+  gap: 16px;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.topbar-left .back-btn {
+  border: none; background: transparent; cursor: pointer;
+  color: var(--color-text-primary); display: flex; align-items: center;
+}
+.topbar-title { font: var(--font-h2); color: var(--color-text-title); white-space: nowrap; }
+/* Segmented tabs — Figma spec 13873:8838 (Segmented Tabs/Two Items) */
+.topbar-tabs {
+  display: flex; align-items: center;
+  background: #F2F2F6;
+  border-radius: 8px;
+  padding: 2px;
+}
+.topbar-tab {
+  position: relative;
+  width: 112px;
+  border: none; background: transparent;
+  /* Figma: Inter Medium 14/20 — weight 500 is a spec deviation from the HVOne 400/600 rule */
+  font: 500 14px/20px var(--font-family);
+  color: #5C5C5C;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+/* 18px hairline divider between segments, hidden beside the active pill */
+.topbar-tab:not(:first-child)::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 50%;
+  transform: translateY(-50%);
+  width: 1px; height: 18px;
+  background: #D9DBDD;
+}
+.topbar-tab.active::before,
+.topbar-tab.active + .topbar-tab::before { display: none; }
+.topbar-tab.active {
+  background: var(--color-surface-white);
+  border: 0.5px solid #D9DBDD;
+  font: 600 14px/21px var(--font-family);
+  letter-spacing: -0.2px;
+  color: var(--color-text-primary);
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.12)) drop-shadow(0 3px 0.5px rgba(0,0,0,0.04));
+}
+.topbar-right { display: flex; align-items: center; gap: 20px; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--color-surface-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: var(--font-body1); color: var(--color-text-primary);
+  padding: 8px 16px; cursor: pointer;
+}
+.share-btn:hover { background: var(--color-surface-z2); }
+.pager { display: flex; align-items: center; gap: 8px; font: var(--font-body1); color: var(--color-text-primary); }
+.pager button { border: none; background: transparent; cursor: pointer; color: var(--color-text-primary); display: flex; align-items: center; }
+
+/* ============ 3-panel layout ============ */
+.layout { display: flex; gap: 20px; align-items: flex-start; padding: 8px 24px 40px; }
+
+.hv-card {
+  background: var(--color-surface-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+/* Left nav panel */
+.left-panel { width: 240px; flex-shrink: 0; padding: 20px 16px; }
+.hv-overline {
+  font: var(--font-overline);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.left-panel .hv-overline { padding: 0 8px; }
+.left-panel .section + .section { margin-top: 20px; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  border: none; background: transparent;
+  font: var(--font-body2); color: var(--color-text-secondary);
+  padding: 8px; border-radius: var(--radius-sm); cursor: pointer; text-align: left;
+}
+.nav-item .material-symbols-rounded { font-size: 18px; color: var(--color-text-secondary); }
+.nav-item:hover { background: var(--color-surface-z2); }
+.nav-item.active {
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
+  font: var(--font-body2-medium);
+}
+.nav-item.active .material-symbols-rounded { color: var(--color-brand-primary); }
+
+/* Main card */
+.main-card { flex: 1; min-width: 0; }
+.module-header { display: flex; align-items: center; gap: 12px; padding: 24px 24px 16px; }
+.module-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-z2);
+  border: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--color-text-secondary);
+}
+.module-title { font: var(--font-h3); color: var(--color-text-title); }
+
+/* ---- Entity strip (associated businesses) ---- */
+.entity-strip {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px 0;
+  flex-wrap: wrap;
+}
+.entity-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-white);
+  border-radius: var(--radius-md);
+  font: var(--font-body2);
+  color: var(--color-text-secondary);
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.entity-tab:hover { background: var(--color-surface-z2); }
+.entity-tab.active {
+  border-color: var(--color-brand-primary);
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
+  font: var(--font-body2-medium);
+}
+.entity-tab .flag-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-fail); flex-shrink: 0;
+}
+.entity-tab .close-tab {
+  display: inline-flex;
+  border: none; background: transparent; cursor: pointer;
+  color: inherit; padding: 0; margin-left: 2px;
+}
+.entity-tab .close-tab .material-symbols-rounded { font-size: 14px; }
+.overflow-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px dashed var(--color-border);
+  background: transparent;
+  border-radius: var(--radius-md);
+  font: var(--font-body2);
+  color: var(--color-text-secondary);
+  padding: 6px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.overflow-btn:hover { background: var(--color-surface-z2); color: var(--color-text-primary); }
+.overflow-btn .material-symbols-rounded { font-size: 16px; }
+
+/* Overflow dropdown menu */
+.overflow-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 24px;
+  width: 380px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: var(--color-surface-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dropdown);
+  z-index: 30;
+  display: none;
+}
+.overflow-menu.open { display: block; }
+.overflow-menu .menu-header {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  padding: 12px 16px 8px;
+}
+.overflow-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.overflow-item:hover { background: var(--color-surface-z2); }
+.overflow-item .biz-name { font: var(--font-body2); color: var(--color-text-primary); }
+.overflow-item .biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
+.overflow-item .result { font: var(--font-body2-medium); flex-shrink: 0; }
+
+/* Breadcrumb bar (Variation B) */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px 0;
+  font: var(--font-body2);
+  color: var(--color-text-secondary);
+}
+.breadcrumb-bar .crumb-link {
+  border: none; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+  font: var(--font-body2);
+  color: var(--color-brand-text);
+  padding: 0;
+}
+.breadcrumb-bar .crumb-link:hover { text-decoration: underline; }
+.breadcrumb-bar .crumb-sep { color: var(--color-text-tertiary); }
+.breadcrumb-bar .crumb-current { font: var(--font-body2-medium); color: var(--color-text-primary); }
+
+.attempt-tabs {
+  display: flex; gap: 24px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+.attempt-tab {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: none; background: transparent;
+  font: var(--font-body1); color: var(--color-text-secondary);
+  padding: 8px 4px 12px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+.attempt-tab.active { color: var(--color-brand-primary); border-bottom-color: var(--color-brand-primary); }
+.attempt-tab .check-icon { color: var(--color-pass); font-size: 18px; font-variation-settings: 'FILL' 1; }
+
+.attempt-meta {
+  display: flex; align-items: center; gap: 24px;
+  padding: 20px 24px 0;
+  font: var(--font-body1);
+}
+.attempt-meta .label { color: var(--color-text-secondary); }
+.attempt-meta .value { font: var(--font-body1-heavy); color: var(--color-text-primary); }
+.badge {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font: var(--font-body2);
+}
+.badge-pass { background: var(--pass-bg); color: var(--pass-badge-text); }
+.badge-review { background: var(--review-bg); color: var(--review-text); }
+.badge-fail { background: var(--fail-bg); color: var(--fail-badge-text); }
+.badge-processed { background: #EDEEF1; color: var(--color-text-secondary); }
+
+/* Input / output columns */
+.module-body { display: flex; gap: 32px; padding: 24px; align-items: flex-start; }
+.io-col { flex: 1; min-width: 0; }
+
+/* Inputs */
+.input-tabs {
+  display: flex;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  overflow: hidden;
+  background: var(--color-surface-z1);
+}
+.input-tab {
+  flex: 1;
+  border: none; background: transparent;
+  font: var(--font-body2); color: var(--color-text-secondary);
+  padding: 10px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border-right: 1px solid var(--color-border);
+}
+.input-tab:last-child { border-right: none; }
+.input-tab.active {
+  background: var(--color-surface-white);
+  color: var(--color-brand-primary);
+  font: var(--font-body2-medium);
+}
+.input-tab .material-symbols-rounded { font-size: 16px; }
+.kv-table {
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  overflow: hidden;
+}
+.kv-row {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 12px 16px;
+  font: var(--font-body2);
+}
+.kv-row:nth-child(even) { background: var(--color-surface-z1); }
+.kv-row .k { color: var(--color-text-primary); flex-shrink: 0; }
+.kv-row .v { color: var(--color-text-primary); text-align: right; font: var(--font-body2-medium); }
+.kv-row .v.empty { color: var(--color-text-tertiary); font: var(--font-body2); }
+
+.file-uploads { margin-top: 24px; }
+.file-chip {
+  display: flex; align-items: center; gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  background: var(--color-surface-white);
+}
+.file-chip + .file-chip { margin-top: 8px; }
+.file-type-tag {
+  background: var(--pass-bg);
+  color: var(--pass-badge-text);
+  font: 600 10px/14px var(--font-family);
+  text-transform: uppercase;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.5px;
+}
+
+/* Output list */
+.output-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.output-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  width: 100%;
+  border: none;
+  background: var(--color-surface-white);
+  padding: 12px 16px;
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+.output-row:nth-child(even) { background: var(--color-surface-z1); }
+.output-row:hover { background: var(--color-surface-z2); }
+.output-row .result { font: var(--font-body2-medium); flex-shrink: 0; }
+.result-pass { color: var(--color-pass); }
+.result-review { color: var(--review-text); }
+.result-fail { color: var(--color-fail); }
+
+/* Right metadata panel */
+.right-panel { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; gap: 20px; }
+.right-panel .hv-card { padding: 24px; }
+.right-panel h4 { font: var(--font-body1-heavy); color: var(--color-text-primary); margin-bottom: 12px; }
+.assignee-row { display: flex; align-items: center; gap: 8px; font: var(--font-body2); color: var(--color-text-secondary); }
+.status-row { display: flex; align-items: center; gap: 12px; }
+.status-row h4 { margin-bottom: 0; }
+.reason { margin-top: 16px; }
+.reason p { font: var(--font-body2); color: var(--color-text-secondary); }
+.comment-box { position: relative; }
+.comment-box textarea {
+  width: 100%;
+  min-height: 88px;
+  resize: vertical;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 32px 8px 12px;
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  font-family: var(--font-family);
+}
+.comment-box textarea::placeholder { color: var(--color-text-tertiary); }
+.comment-box textarea:focus {
+  border-color: var(--color-brand-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(85,62,241,0.12);
+}
+.comment-send {
+  position: absolute;
+  right: 8px; bottom: 12px;
+  border: none; background: transparent; cursor: pointer;
+  color: var(--color-text-tertiary);
+}
+.comment-send:hover { color: var(--color-brand-primary); }
+
+/* ============ Deep Dive Drawer ============ */
+.drawer-scrim {
+  position: fixed; inset: 0;
+  background: rgba(23, 28, 38, 0.5);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 40;
+}
+.drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: calc(100vw - 104px);
+  background: var(--color-surface-white);
+  box-shadow: var(--shadow-modal);
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-scrim.open { opacity: 1; pointer-events: auto; }
+
+.drawer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 24px 24px 16px;
+}
+.drawer-title {
+  font: var(--font-h2);
+  color: var(--color-text-title);
+  display: flex; align-items: center; gap: 8px;
+}
+.drawer-title .biz-scope { font: var(--font-body1); color: var(--color-text-secondary); }
+.drawer-title .material-symbols-rounded { font-size: 18px; color: var(--color-text-tertiary); cursor: pointer; }
+.drawer-close {
+  border: none; background: transparent; cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex; align-items: center;
+}
+.drawer-close:hover { color: var(--color-text-title); }
+
+.drawer-tabs {
+  display: flex; gap: 28px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.drawer-tabs::-webkit-scrollbar { display: none; }
+.drawer-tab {
+  border: none; background: transparent;
+  font: var(--font-body1); color: var(--color-text-secondary);
+  padding: 12px 2px 14px;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.drawer-tab:hover { color: var(--color-text-primary); }
+.drawer-tab.active {
+  color: var(--color-brand-primary);
+  font: var(--font-body1-heavy);
+  border-bottom-color: var(--color-brand-primary);
+}
+.flag-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-fail); flex-shrink: 0;
+}
+
+.drawer-body { display: flex; gap: 24px; flex: 1; min-height: 0; padding: 24px; }
+
+/* Left summary panel inside drawer */
+.summary-panel {
+  position: relative;
+  width: 300px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 0 24px;
+}
+.summary-section { padding: 20px 0; cursor: pointer; }
+.summary-section + .summary-section { border-top: 1px solid var(--color-border); }
+.summary-section-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-bottom: 16px;
+}
+.summary-section-header h5 { font: var(--font-body1-heavy); color: var(--color-text-primary); }
+.summary-check {
+  display: flex; justify-content: space-between; gap: 12px;
+  font: var(--font-body2); color: var(--color-text-primary);
+  padding: 6px 0;
+}
+.summary-check .check-value { font: var(--font-body2-medium); color: var(--color-text-primary); }
+.summary-section.active { position: relative; }
+.summary-section.active::before {
+  content: '';
+  position: absolute;
+  left: -24px; top: 12px; bottom: 12px;
+  width: 3px; border-radius: 2px;
+  background: var(--color-brand-primary);
+}
+
+/* Drawer main content */
+.drawer-content {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.detail-section { margin-bottom: 40px; }
+.detail-section-header {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  margin-bottom: 16px;
+}
+.detail-section-header .material-symbols-rounded { color: var(--color-text-primary); transition: transform 0.2s ease; }
+.detail-section.collapsed .detail-section-header .material-symbols-rounded { transform: rotate(-90deg); }
+.detail-section.collapsed .detail-section-body { display: none; }
+.detail-section-header h3 { font: var(--font-h2); color: var(--color-text-title); }
+
+.detail-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.detail-table { border-collapse: collapse; width: 100%; min-width: 720px; }
+.detail-table th {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-table-header);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.detail-table td {
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  padding: 14px 16px;
+  vertical-align: top;
+}
+.detail-table tbody tr:nth-child(even) { background: var(--color-surface-z1); }
+.detail-table tbody tr:hover { background: var(--color-surface-z2); }
+
+.no-records {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--color-surface-z1);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font: var(--font-body1);
+  color: var(--color-text-primary);
+}
+.no-records .material-symbols-rounded { color: var(--color-pass); font-variation-settings: 'FILL' 1; }
+
+/* ============ Other Business Sources (triage banner) ============ */
+.triage-wrap { padding: 16px 24px 0; }
+.triage-banner {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-z2);
+  overflow: hidden;
+}
+.triage-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.triage-banner-header:hover { background: rgba(85, 62, 241, 0.04); }
+.triage-banner-header .banner-icon { color: var(--color-text-secondary); flex-shrink: 0; }
+.triage-banner-header .banner-title { font: var(--font-body1-heavy); color: var(--color-text-primary); white-space: nowrap; }
+.triage-banner-header .banner-summary { font: var(--font-body2); color: var(--color-text-secondary); white-space: nowrap; }
+.triage-banner-header .banner-chips {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1; min-width: 0;
+  flex-wrap: wrap;
+}
+.triage-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-white);
+  border-radius: var(--radius-sm);
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  padding: 2px 8px;
+  cursor: pointer;
+}
+.triage-chip:hover { border-color: var(--color-brand-primary); color: var(--color-brand-primary); }
+.triage-banner-header .banner-caret {
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+.triage-banner.open .banner-caret { transform: rotate(180deg); }
+.triage-list {
+  display: none;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-white);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.triage-banner.open .triage-list { display: block; }
+.triage-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  cursor: pointer;
+  text-align: left;
+}
+.triage-row:hover { background: var(--color-surface-z2); }
+.triage-row .biz-name { font: var(--font-body2); color: var(--color-text-primary); }
+.triage-row .biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
+.triage-row .flagged-sections { font: var(--font-secondary); color: var(--review-text); margin-top: 2px; }
+.triage-row .result { font: var(--font-body2-medium); margin-left: auto; flex-shrink: 0; }
+.triage-row .row-chevron { color: var(--color-text-tertiary); flex-shrink: 0; }
+.triage-group-label {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  padding: 12px 16px 4px;
+}
+
+/* ============ Prototype variation toggle ============ */
+.proto-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-text-title);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  box-shadow: var(--shadow-dropdown);
+  max-width: calc(100vw - 40px);
+}
+.proto-toggle .proto-label {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-tertiary);
+  padding: 0 6px 0 8px;
+  white-space: nowrap;
+}
+.proto-toggle button {
+  border: none;
+  background: transparent;
+  font: var(--font-body2);
+  color: var(--color-text-tertiary);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.proto-toggle button.active {
+  background: var(--color-brand-primary);
+  color: #FFFFFF;
+  font: var(--font-body2-medium);
+}
+.proto-toggle button.active::after {
+  content: 'expand_less';
+  font-family: 'Material Symbols Rounded';
+  font-size: 16px;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  line-height: 1;
+  opacity: 0.85;
+  transition: transform 0.15s ease;
+}
+.proto-toggle:not(.collapsed) button.active::after {
+  transform: rotate(180deg);
+}
+.proto-toggle.collapsed .proto-label,
+.proto-toggle.collapsed button:not(.active) {
+  display: none;
+}
+.proto-toggle.collapsed {
+  padding: 4px;
+}
+</style>
+</head>
+<body>
+
+<!-- ============ Top Bar ============ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <button class="back-btn" aria-label="Back"><span class="material-symbols-rounded">arrow_back</span></button>
+    <span class="topbar-title">Blue Oak Technologies LLC</span>
+  </div>
+  <nav class="topbar-tabs">
+    <button class="topbar-tab">Overview</button>
+    <button class="topbar-tab">Timeline</button>
+    <button class="topbar-tab active">All Modules</button>
+  </nav>
+  <div class="topbar-right">
+    <button class="share-btn"><span class="material-symbols-rounded" style="font-size:18px">link</span> Share Link</button>
+    <div class="pager">
+      <button aria-label="Previous"><span class="material-symbols-rounded">arrow_back</span></button>
+      <span>3/20 Applications</span>
+      <button aria-label="Next"><span class="material-symbols-rounded">arrow_forward</span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ Layout ============ -->
+<div class="layout">
+
+  <!-- Left nav panel -->
+  <aside class="left-panel hv-card">
+    <div class="section">
+      <p class="hv-overline">Application Details</p>
+      <button class="nav-item"><span class="material-symbols-rounded">account_tree</span> Workflow Details</button>
+      <button class="nav-item"><span class="material-symbols-rounded">person</span> User Information</button>
+    </div>
+    <div class="section">
+      <p class="hv-overline">Modules Used</p>
+      <button class="nav-item active"><span class="material-symbols-rounded">policy</span> CLEAR Analysis</button>
+    </div>
+  </aside>
+
+  <!-- Main module card -->
+  <main class="main-card hv-card">
+    <div class="module-header">
+      <div class="module-icon"><span class="material-symbols-rounded">contact_page</span></div>
+      <h2 class="module-title">CLEAR Analysis</h2>
+    </div>
+
+    <div class="attempt-tabs">
+      <button class="attempt-tab active">
+        <span class="material-symbols-rounded check-icon">check_circle</span> 1st attempt
+      </button>
+    </div>
+
+    <!-- Entity strip OR breadcrumb (rendered by JS) -->
+    <div class="entity-strip" id="entityStrip"></div>
+    <div class="breadcrumb-bar" id="breadcrumbBar" style="display:none"></div>
+
+    <div class="attempt-meta" id="attemptMeta"></div>
+
+    <!-- Other Business Sources banner (Variation C, rendered by JS) -->
+    <div class="triage-wrap" id="triageWrap" style="display:none"></div>
+
+    <div class="module-body">
+      <!-- Inputs -->
+      <section class="io-col">
+        <p class="hv-overline">Inputs</p>
+        <div class="input-tabs" id="inputTabs"></div>
+        <div class="kv-table" id="inputKv"></div>
+        <div class="file-uploads" id="fileUploads"></div>
+      </section>
+
+      <!-- Outputs -->
+      <section class="io-col">
+        <p class="hv-overline">Output</p>
+        <div class="output-list" id="outputList"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Right metadata panel -->
+  <aside class="right-panel">
+    <div class="hv-card">
+      <h4>Assignee</h4>
+      <div class="assignee-row">
+        <span class="material-symbols-rounded" style="font-size:18px">person</span>
+        sadams@mulliganfunding.co
+      </div>
+    </div>
+    <div class="hv-card">
+      <div class="status-row">
+        <h4>Current Status:</h4>
+        <span class="badge badge-processed">Processed</span>
+      </div>
+      <div class="reason">
+        <h4>Reason Behind the Status</h4>
+        <p>No Issues faced by the user</p>
+      </div>
+    </div>
+    <div class="hv-card">
+      <p class="hv-overline">Comments</p>
+      <div class="comment-box">
+        <textarea placeholder="Add your comments here..."></textarea>
+        <button class="comment-send" aria-label="Send comment"><span class="material-symbols-rounded">send</span></button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ============ Deep Dive Drawer ============ -->
+<div class="drawer-scrim" id="drawerScrim"></div>
+<div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="CLEAR Analysis Deep Dive">
+  <div class="drawer-header">
+    <h2 class="drawer-title">CLEAR Analysis - Deep Dive
+      <span class="biz-scope" id="drawerBizScope"></span>
+      <span class="material-symbols-rounded" title="Detailed record-level view of every CLEAR check">info</span>
+    </h2>
+    <button class="drawer-close" id="drawerClose" aria-label="Close"><span class="material-symbols-rounded" style="font-size:24px">close</span></button>
+  </div>
+  <nav class="drawer-tabs" id="drawerTabs"></nav>
+  <div class="drawer-body">
+    <aside class="summary-panel" id="summaryPanel"></aside>
+    <div class="drawer-content" id="drawerContent"></div>
+  </div>
+</div>
+
+<!-- ============ Prototype variation toggle ============ -->
+<div class="proto-toggle collapsed" id="protoToggle">
+  <span class="proto-label">Nav variation</span>
+  <button id="modeTabs" class="active" data-mode="tabs">A · Temp tabs</button>
+  <button id="modeBreadcrumb" data-mode="breadcrumb">B · Breadcrumb</button>
+  <button id="modeTriage" data-mode="triage">C · Triage</button>
+</div>
+
+<script>
+/* =====================================================================
+   DATA
+   Every business (primary + associated) is a full peer: same input
+   structure, same 18 output sections, own deep-dive drawer.
+   Edit BUSINESSES to reshape the prototype.
+   ===================================================================== */
+
+/* --- Section template: the 18 CLEAR sections, all clean by default --- */
+const SECTION_TEMPLATE = [
+  { id: 'judgements', title: 'Judgements',
+    checks: [['Open judgements', 'No'], ['Recent judgements', 'No'], ['High value judgements', 'No']] },
+  { id: 'liens', title: 'Liens',
+    checks: [['Active tax liens', 'No'], ['Recent lien filings', 'No'], ['Released liens', 'No']] },
+  { id: 'property', title: 'Real Property & Deed Transfers',
+    checks: [['Recent deed transfers', 'No'], ['Distressed transfers', 'No']] },
+  { id: 'foreclosures', title: 'Foreclosures',
+    checks: [['Active foreclosure', 'No'], ['Recent foreclosure filing', 'No'], ['Multiple foreclosures', 'No']] },
+  { id: 'addresses', title: 'Addresses Associated',
+    checks: [['High risk address match', 'No'], ['Multiple recent moves', 'No']] },
+  { id: 'bankruptcy', title: 'Bankruptcy',
+    checks: [['Open bankruptcy', 'No'], ['Bankruptcy within 5 years', 'No'], ['Multiple filings', 'No']] },
+  { id: 'criminal', title: 'Criminal Record',
+    checks: [['Felony', 'No'], ['Trust Crime', 'No'], ['Active supervision or Incarceration', 'No'],
+             ['Open criminal record', 'No'], ['Multiple convictions', 'No'], ['Recent criminal records', 'No']] },
+  { id: 'ucc', title: 'UCC Filings',
+    checks: [['Active by tax authority', 'No'], ['Recent by competitor', 'No'], ['Recent by alias lender', 'No'],
+             ['Multiple high risk filings', 'No'], ['Additional co debtor present', 'No'], ['Recent filings by individual', 'No']] },
+  { id: 'lawsuits', title: 'Lawsuits',
+    checks: [['Open lawsuits', 'No'], ['Recent lawsuits', 'No'], ['Plaintiff is a lender', 'No']] },
+  { id: 'dockets', title: 'Dockets',
+    checks: [['Open dockets', 'No'], ['Recent docket activity', 'No']] },
+  { id: 'affiliations', title: 'Affiliations',
+    checks: [['High risk affiliations', 'No'], ['Sanctioned entity links', 'No']] },
+  { id: 'licenses', title: 'Licenses',
+    checks: [['Expired business license', 'No'], ['Revoked license', 'No']] },
+  { id: 'business-overview', title: 'Business Overview',
+    checks: [['SOS status inactive', 'No'], ['Business age < 2 years', 'No']] },
+  { id: 'executives', title: 'Associated Executives',
+    checks: [['Executive mismatch', 'No'], ['High risk executive record', 'No']] },
+  { id: 'death-record', title: 'Death Record',
+    checks: [['Death record match', 'No']] },
+  { id: 'sanctions', title: 'Global Sanctions',
+    checks: [['OFAC match', 'No'], ['Watchlist match', 'No'], ['PEP match', 'No']] },
+  { id: 'sec', title: 'SEC Filing',
+    checks: [['SEC enforcement action', 'No'], ['Recent SEC filing', 'No']] },
+  { id: 'marijuana', title: 'Marijuana Related Business Records',
+    checks: [['MRB registration found', 'No'], ['MRB adjacent activity', 'No']] },
+];
+
+/* makeSections(overrides): clone the template, apply per-section overrides
+   keyed by section id: { status, checks, columns, rows, flag } */
+function makeSections(overrides = {}) {
+  return SECTION_TEMPLATE.map((s) => {
+    const o = overrides[s.id] || {};
+    return { ...s, status: 'pass', ...o, checks: o.checks || s.checks };
+  });
+}
+
+function makeInputs(name, address, ein) {
+  return {
+    'Business': [
+      ['Business Name', name],
+      ['Business Address', address || '-'],
+      ['EIN', ein || '-'],
+    ],
+    'Owner 1': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
+    'Owner 2': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
+    'Owner 3': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
+  };
+}
+
+const CRIMINAL_ROWS = {
+  columns: ['Offense', 'Disposition', 'Status', 'Severity', 'Category', 'Case Number', 'Bail Amount'],
+  rows: [
+    ['Robbery', 'N/A', 'N/A', 'Misdemeanor', 'Robbery', '858030', 'N/A'],
+    ['Aggrav Stalking', 'N/A', 'N/A', 'Misdemeanor', 'Initmidation', '850904', 'N/A'],
+    ['Fleeing/Eluding Police', 'N/A', 'N/A', 'Misdemeanor', 'FleePolice', '858030', 'N/A'],
+    ['Speeding', 'N/A', 'N/A', 'Misdemeanor', 'N/A', '01-CR-034030', 'N/A'],
+    ['THEFT PROP >=$20, <$500', 'Dimissed', 'Disposed', 'Misdemeanor', 'TheftByCheck', '01-CR-028097', 'N/A'],
+    ['Fail to Stop Scene PD ACC', 'Guilty', 'Closed', 'Misdemeanor', 'Uncategorized', '01-TR-028030', 'N/A'],
+    ['Threating', 'N/A', 'Probation Review', 'Felony', 'Intimidation', '857430', 'N/A'],
+  ],
+};
+
+/* --- The businesses --- */
+const BUSINESSES = [
+  {
+    id: 'main',
+    name: 'Blue Oak Technologies LLC',
+    shortName: 'Blue Oak Technologies',
+    relation: 'Applicant',
+    primary: true,
+    inputs: {
+      'Business': [
+        ['Business Name', 'Blue Oak Technologies LLC'],
+        ['Business Address', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109'],
+        ['EIN', '84-2245108'],
+      ],
+      'Owner 1': [
+        ['Business Name', 'Blue Oak Technologies LLC'],
+        ['Business Address', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109'],
+        ['Owner Name', '-'],
+      ],
+      'Owner 2': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
+      'Owner 3': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
+    },
+    files: [
+      'Bank 6862 - Dec 2024 - 2025-01-31 21_15_14.xml',
+      'Bank 6862 - Nov 2024 - 2025-01-31 21_15_13.Xml',
+    ],
+    sections: makeSections({
+      foreclosures: { status: 'review', flag: true,
+        checks: [['Active foreclosure', 'Yes'], ['Recent foreclosure filing', 'Yes'], ['Multiple foreclosures', 'No']],
+        columns: ['Property Address', 'Filing Type', 'Status', 'Filing Date', 'Case Number'],
+        rows: [
+          ['1458 Pacific Avenue, San Francisco, CA', 'Notice of Default', 'Active', '2024-11-04', 'FC-2024-08841'],
+          ['220 Mission Bay Blvd, San Francisco, CA', 'Lis Pendens', 'Dismissed', '2022-03-18', 'FC-2022-01573'],
+        ] },
+      criminal: { status: 'review',
+        checks: [['Felony', 'No'], ['Trust Crime', 'Yes'], ['Active supervision or Incarceration', 'Yes'],
+                 ['Open criminal record', 'Yes'], ['Multiple convictions', 'Yes'], ['Recent criminal records', 'Yes']],
+        ...CRIMINAL_ROWS },
+    }),
+  },
+  {
+    id: 'marina',
+    name: 'Marina Holdings LLC',
+    shortName: 'Marina Holdings',
+    relation: 'Owner 2 · 40% stake',
+    inputs: makeInputs('Marina Holdings LLC', '88 King Street, San Francisco, CA 94107', '82-5567190'),
+    sections: makeSections({
+      criminal: { status: 'review', flag: true,
+        checks: [['Felony', 'Yes'], ['Trust Crime', 'Yes'], ['Active supervision or Incarceration', 'No'],
+                 ['Open criminal record', 'Yes'], ['Multiple convictions', 'No'], ['Recent criminal records', 'Yes']],
+        ...CRIMINAL_ROWS },
+      liens: { status: 'review',
+        checks: [['Active tax liens', 'Yes'], ['Recent lien filings', 'Yes'], ['Released liens', 'No']],
+        columns: ['Lien Type', 'Filing Authority', 'Amount', 'Status', 'Filing Date'],
+        rows: [
+          ['Federal Tax Lien', 'IRS', '$84,200', 'Active', '2025-01-12'],
+          ['State Tax Lien', 'CA Franchise Tax Board', '$12,650', 'Active', '2024-09-30'],
+        ] },
+    }),
+  },
+  {
+    id: 'coastal',
+    name: 'Coastal Freight Partners LLC',
+    shortName: 'Coastal Freight',
+    relation: 'Frequent transactions',
+    inputs: makeInputs('Coastal Freight Partners LLC', '410 Harbor Blvd, Oakland, CA 94607', '87-1104482'),
+    sections: makeSections({
+      bankruptcy: { status: 'review', flag: true,
+        checks: [['Open bankruptcy', 'Yes'], ['Bankruptcy within 5 years', 'Yes'], ['Multiple filings', 'No']],
+        columns: ['Chapter', 'Court', 'Case Number', 'Status', 'Filing Date'],
+        rows: [
+          ['Chapter 11', 'N.D. Cal. Bankruptcy Court', '24-30881', 'Open', '2024-06-17'],
+        ] },
+      ucc: { status: 'review',
+        checks: [['Active by tax authority', 'No'], ['Recent by competitor', 'Yes'], ['Recent by alias lender', 'Yes'],
+                 ['Multiple high risk filings', 'No'], ['Additional co debtor present', 'No'], ['Recent filings by individual', 'No']],
+        columns: ['Secured Party', 'Collateral', 'Filing Number', 'Status', 'Filing Date'],
+        rows: [
+          ['Meridian Capital Group', 'All assets', 'UCC-2025-114073', 'Active', '2025-02-03'],
+          ['Ironclad Funding LLC', 'Accounts receivable', 'UCC-2024-990112', 'Active', '2024-11-21'],
+        ] },
+    }),
+  },
+  /* --- clean associated businesses --- */
+  ...[
+    ['pacific-crest', 'Pacific Crest Catering LLC', 'Owner 1'],
+    ['ridgeline', 'Ridgeline Property Group', 'Owner 2'],
+    ['bayline', 'Bayline Logistics Inc', 'Frequent transactions'],
+    ['sundial', 'Sundial Coffee Roasters LLC', 'Owner 2'],
+    ['northgate', 'Northgate Auto Repair', 'Unknown relation'],
+    ['emerald-bay', 'Emerald Bay Consulting', 'Owner 1'],
+    ['harbor-point', 'Harbor Point Realty LLC', 'Owner 2'],
+    ['twin-peaks', 'Twin Peaks Web Services', 'Frequent transactions'],
+    ['golden-gate', 'Golden Gate Textiles', 'Unknown relation'],
+    ['cypress-lane', 'Cypress Lane Bakery', 'Owner 2'],
+    ['redwood', 'Redwood Analytics LLC', 'Owner 1'],
+    ['mission-bay', 'Mission Bay Imports', 'Frequent transactions'],
+  ].map(([id, name, relation]) => ({
+    id, name, relation,
+    shortName: name.replace(/ (LLC|Inc|Group)$/, ''),
+    inputs: makeInputs(name),
+    sections: makeSections(),
+  })),
+];
+
+/* Derived helpers */
+BUSINESSES.forEach((b) => {
+  b.status = b.sections.some((s) => s.status === 'fail') ? 'fail'
+           : b.sections.some((s) => s.status === 'review') ? 'review' : 'pass';
+  b.flagged = !b.primary && b.status !== 'pass';
+});
+const byId = (id) => BUSINESSES.find((b) => b.id === id);
+
+/* =====================================================================
+   STATE
+   mode 'tabs'      → Variation A: overflow picks become dismissable tabs
+   mode 'breadcrumb'→ Variation B: overflow picks drill in with breadcrumb
+   ===================================================================== */
+const state = {
+  mode: 'tabs',        // 'tabs' | 'breadcrumb' | 'triage'
+  currentId: 'main',
+  tempTabs: [],        // ids opened from overflow (Variation A)
+  triageOpen: false,   // banner list expanded (Variation C)
+  inputTab: 'Owner 1',
+};
+
+const $ = (sel) => document.querySelector(sel);
+const statusLabel = { pass: 'Pass', review: 'Review', fail: 'Fail' };
+const badgeClass = { pass: 'badge-pass', review: 'badge-review', fail: 'badge-fail' };
+const resultClass = { pass: 'result-pass', review: 'result-review', fail: 'result-fail' };
+
+/* =====================================================================
+   ENTITY STRIP + OVERFLOW + BREADCRUMB
+   ===================================================================== */
+function pinnedBusinesses() {
+  return BUSINESSES.filter((b) => b.primary || b.flagged);
+}
+function overflowBusinesses() {
+  return BUSINESSES.filter((b) => !b.primary && !b.flagged);
+}
+
+function renderEntityStrip() {
+  const strip = $('#entityStrip');
+  const crumb = $('#breadcrumbBar');
+  const current = byId(state.currentId);
+  const isOverflowCurrent = !current.primary && !current.flagged;
+
+  /* Variation C: no entity strip at all — banner + breadcrumb only */
+  if (state.mode === 'triage') {
+    strip.style.display = 'none';
+    if (current.primary) { crumb.style.display = 'none'; return; }
+    crumb.style.display = 'flex';
+    crumb.innerHTML = `
+      <button class="crumb-link" id="crumbBack">
+        <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
+        CLEAR Analysis
+      </button>
+      <span class="crumb-sep">/</span>
+      <button class="crumb-link" id="crumbSources">Other Business Sources</button>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">${current.name}</span>
+      <span class="badge ${badgeClass[current.status]}" style="margin-left:4px">${statusLabel[current.status]}</span>`;
+    $('#crumbBack').addEventListener('click', () => { state.triageOpen = false; selectBusiness('main'); });
+    $('#crumbSources').addEventListener('click', () => { state.triageOpen = true; selectBusiness('main'); });
+    return;
+  }
+
+  /* Variation B, drilled into an overflow business → breadcrumb replaces strip */
+  if (state.mode === 'breadcrumb' && isOverflowCurrent) {
+    strip.style.display = 'none';
+    crumb.style.display = 'flex';
+    crumb.innerHTML = `
+      <button class="crumb-link" id="crumbBack">
+        <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
+        CLEAR Analysis
+      </button>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">${current.name}</span>
+      <span class="badge ${badgeClass[current.status]}" style="margin-left:4px">${statusLabel[current.status]}</span>`;
+    $('#crumbBack').addEventListener('click', () => selectBusiness('main'));
+    return;
+  }
+
+  crumb.style.display = 'none';
+  strip.style.display = 'flex';
+
+  const tabs = pinnedBusinesses().map((b) => `
+    <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
+      ${b.flagged ? '<span class="flag-dot"></span>' : ''}
+      ${b.shortName}${b.primary ? ' (Main)' : ''}
+    </button>`);
+
+  if (state.mode === 'tabs') {
+    tabs.push(...state.tempTabs.map((id) => {
+      const b = byId(id);
+      return `
+        <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
+          ${b.shortName}
+          <span class="close-tab" data-close="${b.id}" title="Dismiss">
+            <span class="material-symbols-rounded">close</span>
+          </span>
+        </button>`;
+    }));
+  }
+
+  const hiddenCount = overflowBusinesses().length - (state.mode === 'tabs' ? state.tempTabs.length : 0);
+  strip.innerHTML = tabs.join('') + `
+    <button class="overflow-btn" id="overflowBtn">
+      +${hiddenCount} more businesses
+      <span class="material-symbols-rounded">expand_more</span>
+    </button>
+    <div class="overflow-menu" id="overflowMenu">
+      <p class="menu-header">All associated businesses</p>
+      ${BUSINESSES.filter((b) => !b.primary).map((b) => `
+        <button class="overflow-item" data-biz="${b.id}">
+          <span>
+            <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+            <div class="biz-relation">${b.relation}</div>
+          </span>
+          <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+        </button>`).join('')}
+    </div>`;
+
+  strip.querySelectorAll('.entity-tab').forEach((tab) =>
+    tab.addEventListener('click', (e) => {
+      const closeId = e.target.closest('[data-close]')?.dataset.close;
+      if (closeId) { dismissTempTab(closeId); return; }
+      selectBusiness(tab.dataset.biz);
+    }));
+  $('#overflowBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    $('#overflowMenu').classList.toggle('open');
+  });
+  strip.querySelectorAll('.overflow-item').forEach((item) =>
+    item.addEventListener('click', () => {
+      $('#overflowMenu').classList.remove('open');
+      selectBusiness(item.dataset.biz);
+    }));
+}
+
+document.addEventListener('click', (e) => {
+  const menu = $('#overflowMenu');
+  if (menu && !e.target.closest('.overflow-menu') && !e.target.closest('#overflowBtn')) {
+    menu.classList.remove('open');
+  }
+});
+
+function dismissTempTab(id) {
+  state.tempTabs = state.tempTabs.filter((t) => t !== id);
+  if (state.currentId === id) state.currentId = 'main';
+  render();
+}
+
+function selectBusiness(id) {
+  const b = byId(id);
+  state.currentId = id;
+  state.inputTab = b.primary ? 'Owner 1' : 'Business';
+  /* Variation A: picking an overflow business opens it as a temp tab */
+  if (state.mode === 'tabs' && !b.primary && !b.flagged && !state.tempTabs.includes(id)) {
+    state.tempTabs.push(id);
+  }
+  render();
+}
+
+/* =====================================================================
+   CARD BODY (per business)
+   ===================================================================== */
+function renderAttemptMeta() {
+  const b = byId(state.currentId);
+  $('#attemptMeta').innerHTML = `
+    <span><span class="label">Attempted at:</span> <span class="value">11:17 pm, Feb 27, 2025</span></span>
+    <span><span class="label">Status:</span> <span class="badge ${badgeClass[b.status]}">${statusLabel[b.status]}</span></span>`;
+}
+
+function renderInputs() {
+  const b = byId(state.currentId);
+  const tabs = Object.keys(b.inputs);
+  const tabsEl = $('#inputTabs');
+  tabsEl.innerHTML = tabs.map((t) => `
+    <button class="input-tab ${t === state.inputTab ? 'active' : ''}" data-tab="${t}">
+      ${t === 'Business' ? '<span class="material-symbols-rounded">storefront</span>' : ''}${t}
+    </button>`).join('');
+  tabsEl.querySelectorAll('.input-tab').forEach((btn) =>
+    btn.addEventListener('click', () => { state.inputTab = btn.dataset.tab; renderInputs(); }));
+
+  $('#inputKv').innerHTML = (b.inputs[state.inputTab] || []).map(([k, v]) => `
+    <div class="kv-row">
+      <span class="k">${k}</span>
+      <span class="v ${v === '-' ? 'empty' : ''}">${v}</span>
+    </div>`).join('');
+
+  $('#fileUploads').innerHTML = (b.files && b.files.length) ? `
+    <p class="hv-overline">File Uploads</p>
+    ${b.files.map((f) => `<div class="file-chip"><span class="file-type-tag">XML</span> ${f}</div>`).join('')}` : '';
+}
+
+function renderOutputs() {
+  const b = byId(state.currentId);
+  $('#outputList').innerHTML = b.sections.map((s) => `
+    <button class="output-row" data-section="${s.id}">
+      <span>${s.title}</span>
+      <span class="result ${resultClass[s.status]}">${statusLabel[s.status]}</span>
+    </button>`).join('');
+  document.querySelectorAll('.output-row').forEach((row) =>
+    row.addEventListener('click', () => openDrawer(row.dataset.section)));
+}
+
+/* =====================================================================
+   OTHER BUSINESS SOURCES banner + triage list (Variation C)
+   ===================================================================== */
+function flaggedSectionTitles(b) {
+  return b.sections.filter((s) => s.status !== 'pass').map((s) => s.title).join(' · ');
+}
+
+function renderTriage() {
+  const wrap = $('#triageWrap');
+  if (state.mode !== 'triage' || state.currentId !== 'main') {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+    return;
+  }
+  const associated = BUSINESSES.filter((b) => !b.primary);
+  const flagged = associated.filter((b) => b.flagged);
+  const clean = associated.filter((b) => !b.flagged);
+
+  const row = (b) => `
+    <button class="triage-row" data-biz="${b.id}">
+      ${b.flagged ? '<span class="flag-dot"></span>' : ''}
+      <span>
+        <span class="biz-name">${b.name}</span>
+        <div class="biz-relation">${b.relation}</div>
+        ${b.flagged ? `<div class="flagged-sections">${flaggedSectionTitles(b)}</div>` : ''}
+      </span>
+      <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+      <span class="material-symbols-rounded row-chevron" style="font-size:18px">chevron_right</span>
+    </button>`;
+
+  wrap.style.display = 'block';
+  wrap.innerHTML = `
+    <div class="triage-banner ${state.triageOpen ? 'open' : ''}">
+      <button class="triage-banner-header" id="triageToggle">
+        <span class="material-symbols-rounded banner-icon">source_environment</span>
+        <span class="banner-title">Other Business Sources</span>
+        <span class="banner-summary">${flagged.length} of ${associated.length} businesses flagged</span>
+        <span class="banner-chips">
+          ${flagged.map((b) => `
+            <span class="triage-chip" data-biz="${b.id}">
+              <span class="flag-dot"></span>${b.shortName}
+            </span>`).join('')}
+        </span>
+        <span class="material-symbols-rounded banner-caret">expand_more</span>
+      </button>
+      <div class="triage-list">
+        ${flagged.length ? `<p class="triage-group-label">Flagged (${flagged.length})</p>` : ''}
+        ${flagged.map(row).join('')}
+        <p class="triage-group-label">No flags (${clean.length})</p>
+        ${clean.map(row).join('')}
+      </div>
+    </div>`;
+
+  $('#triageToggle').addEventListener('click', (e) => {
+    /* chips inside the header navigate; the header itself toggles the list */
+    const chipId = e.target.closest('.triage-chip')?.dataset.biz;
+    if (chipId) { selectBusiness(chipId); return; }
+    state.triageOpen = !state.triageOpen;
+    renderTriage();
+  });
+  wrap.querySelectorAll('.triage-row').forEach((r) =>
+    r.addEventListener('click', () => selectBusiness(r.dataset.biz)));
+}
+
+function render() {
+  renderEntityStrip();
+  renderTriage();
+  renderAttemptMeta();
+  renderInputs();
+  renderOutputs();
+}
+
+/* =====================================================================
+   DEEP DIVE DRAWER (scoped to current business)
+   ===================================================================== */
+const drawer = $('#drawer');
+const scrim = $('#drawerScrim');
+const drawerContent = $('#drawerContent');
+let drawerBizId = null;
+
+function renderDrawer(bizId) {
+  const b = byId(bizId);
+  drawerBizId = bizId;
+  $('#drawerBizScope').textContent = b.primary ? '' : `· ${b.name}`;
+
+  $('#drawerTabs').innerHTML = b.sections.map((s) => `
+    <button class="drawer-tab" data-section="${s.id}">
+      ${s.title}${s.flag ? '<span class="flag-dot"></span>' : ''}
+    </button>`).join('');
+  document.querySelectorAll('.drawer-tab').forEach((tab) =>
+    tab.addEventListener('click', () => scrollToSection(tab.dataset.section)));
+
+  $('#summaryPanel').innerHTML = b.sections.map((s) => `
+    <div class="summary-section" data-section="${s.id}">
+      <div class="summary-section-header">
+        <h5>${s.title}</h5>
+        <span class="badge ${badgeClass[s.status]}">${statusLabel[s.status]}</span>
+      </div>
+      ${s.checks.map(([name, val]) => `
+        <div class="summary-check"><span>${name}</span><span class="check-value">${val}</span></div>`).join('')}
+    </div>`).join('');
+  document.querySelectorAll('.summary-section').forEach((el) =>
+    el.addEventListener('click', () => scrollToSection(el.dataset.section)));
+
+  drawerContent.innerHTML = b.sections.map((s) => `
+    <section class="detail-section" id="section-${s.id}" data-section="${s.id}">
+      <div class="detail-section-header">
+        <span class="material-symbols-rounded">keyboard_arrow_down</span>
+        <h3>${s.title}</h3>
+      </div>
+      <div class="detail-section-body">
+        ${s.rows && s.rows.length ? `
+          <div class="detail-table-wrap">
+            <table class="detail-table">
+              <thead><tr>${s.columns.map((c) => `<th>${c}</th>`).join('')}</tr></thead>
+              <tbody>${s.rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody>
+            </table>
+          </div>` : `
+          <div class="no-records"><span class="material-symbols-rounded">check_circle</span> No relevant records</div>`}
+      </div>
+    </section>`).join('');
+  document.querySelectorAll('.detail-section-header').forEach((h) =>
+    h.addEventListener('click', () => h.closest('.detail-section').classList.toggle('collapsed')));
+}
+
+function setActive(sectionId) {
+  document.querySelectorAll('.drawer-tab').forEach((t) =>
+    t.classList.toggle('active', t.dataset.section === sectionId));
+  document.querySelectorAll('.summary-section').forEach((s) =>
+    s.classList.toggle('active', s.dataset.section === sectionId));
+  const tab = document.querySelector(`.drawer-tab[data-section="${sectionId}"]`);
+  if (tab) tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  const summary = document.querySelector(`.summary-section[data-section="${sectionId}"]`);
+  if (summary) {
+    const panel = document.getElementById('summaryPanel');
+    panel.scrollTo({ top: summary.offsetTop, behavior: 'smooth' });
+  }
+}
+
+let suppressSpy = false;
+function scrollToSection(sectionId, instant = false) {
+  const el = document.getElementById(`section-${sectionId}`);
+  if (!el) return;
+  suppressSpy = true;
+  setActive(sectionId);
+  drawerContent.scrollTo({ top: el.offsetTop, behavior: instant ? 'instant' : 'smooth' });
+  setTimeout(() => { suppressSpy = false; }, instant ? 100 : 600);
+}
+
+drawerContent.addEventListener('scroll', () => {
+  if (suppressSpy) return;
+  const sections = [...drawerContent.querySelectorAll('.detail-section')];
+  const top = drawerContent.getBoundingClientRect().top + 80;
+  let current = sections[0];
+  for (const s of sections) {
+    if (s.getBoundingClientRect().top <= top) current = s;
+  }
+  if (current) setActive(current.dataset.section);
+});
+
+function openDrawer(sectionId) {
+  if (drawerBizId !== state.currentId) renderDrawer(state.currentId);
+  drawer.classList.add('open');
+  scrim.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  requestAnimationFrame(() => scrollToSection(sectionId, true));
+}
+function closeDrawer() {
+  drawer.classList.remove('open');
+  scrim.classList.remove('open');
+  document.body.style.overflow = '';
+}
+$('#drawerClose').addEventListener('click', closeDrawer);
+scrim.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer(); });
+
+/* =====================================================================
+   VARIATION TOGGLE
+   ===================================================================== */
+const protoToggle = $('#protoToggle');
+
+function setMode(mode) {
+  state.mode = mode;
+  state.currentId = 'main';
+  state.tempTabs = [];
+  state.triageOpen = false;
+  state.inputTab = 'Owner 1';
+  $('#modeTabs').classList.toggle('active', mode === 'tabs');
+  $('#modeBreadcrumb').classList.toggle('active', mode === 'breadcrumb');
+  $('#modeTriage').classList.toggle('active', mode === 'triage');
+  protoToggle.classList.add('collapsed');
+  render();
+}
+
+protoToggle.querySelectorAll('button').forEach((btn) => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const mode = btn.dataset.mode;
+    if (protoToggle.classList.contains('collapsed')) {
+      protoToggle.classList.remove('collapsed');
+      return;
+    }
+    if (mode === state.mode) {
+      protoToggle.classList.add('collapsed');
+      return;
+    }
+    setMode(mode);
+  });
+});
+
+document.addEventListener('click', (e) => {
+  if (!protoToggle.contains(e.target)) protoToggle.classList.add('collapsed');
+});
+
+/* Top nav segmented tabs — visual switching only (pages not prototyped) */
+document.querySelectorAll('.topbar-tab').forEach((tab) =>
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.topbar-tab').forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+  }));
+
+render();
+</script>
+</body>
+</html>
