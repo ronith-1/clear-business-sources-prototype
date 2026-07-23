@@ -639,6 +639,7 @@ body {
 .triage-banner-header {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
   width: 100%;
   border: none;
@@ -651,11 +652,15 @@ body {
 .triage-banner-header .banner-icon { color: var(--color-text-secondary); flex-shrink: 0; }
 .triage-banner-header .banner-title { font: var(--font-body1-heavy); color: var(--color-text-primary); white-space: nowrap; }
 .triage-banner-header .banner-summary { font: var(--font-body2); color: var(--color-text-secondary); white-space: nowrap; }
+/* Chips wrap onto their own line beneath the summary rather than
+   competing with it for horizontal space. */
 .triage-banner-header .banner-chips {
   display: flex; align-items: center; gap: 8px;
-  flex: 1; min-width: 0;
+  flex: 0 0 100%; min-width: 0;
   flex-wrap: wrap;
+  margin-top: -2px;
 }
+.triage-banner-header .banner-chips:empty { display: none; }
 .triage-chip {
   display: inline-flex;
   align-items: center;
@@ -670,6 +675,7 @@ body {
 }
 .triage-chip:hover { border-color: var(--color-brand-primary); color: var(--color-brand-primary); }
 .triage-banner-header .banner-caret {
+  margin-left: auto;
   color: var(--color-text-secondary);
   transition: transform 0.2s ease;
   flex-shrink: 0;
@@ -707,6 +713,46 @@ body {
   color: var(--color-text-secondary);
   padding: 12px 16px 4px;
 }
+
+/* ---- Collapse-all (replaces "+0 more" once everything is open) ---- */
+.overflow-btn.collapse-all {
+  border-style: solid;
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+.overflow-btn.collapse-all:hover {
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
+}
+
+/* ---- Banner: selected state, chip overflow, scrolling list (C/D/E) ---- */
+.triage-chip.active {
+  border-color: var(--color-brand-primary);
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
+  font: var(--font-body2-medium);
+}
+.triage-chip.more-chip {
+  border-style: dashed;
+  color: var(--color-text-secondary);
+}
+.triage-chip.applicant-chip { border-style: dashed; }
+.triage-banner-header .banner-current {
+  font: var(--font-body1-heavy);
+  color: var(--color-text-primary);
+}
+.triage-row.active {
+  background: rgba(85, 62, 241, 0.06);
+  box-shadow: inset 2px 0 0 var(--color-brand-primary);
+}
+.triage-row.active .biz-name {
+  font: var(--font-body2-medium);
+  color: var(--color-brand-primary);
+}
+.triage-row.active .row-chevron { color: var(--color-brand-primary); }
+
+/* ---- Scenario toggle sits above the variation toggle ---- */
+.proto-toggle.scenario-toggle { bottom: 68px; }
 
 /* ============ Prototype variation toggle ============ */
 .proto-toggle {
@@ -895,11 +941,18 @@ body {
 </div>
 
 <!-- ============ Prototype variation toggle ============ -->
+<div class="proto-toggle scenario-toggle collapsed" id="scenarioToggle">
+  <span class="proto-label">Scenario</span>
+  <button class="active" data-scenario="typical">Typical · 2 flagged / 14</button>
+  <button data-scenario="heavy">Heavy · 6 flagged / 22</button>
+</div>
 <div class="proto-toggle collapsed" id="protoToggle">
   <span class="proto-label">Nav variation</span>
-  <button id="modeTabs" class="active" data-mode="tabs">A · Temp tabs</button>
-  <button id="modeBreadcrumb" data-mode="breadcrumb">B · Breadcrumb</button>
-  <button id="modeTriage" data-mode="triage">C · Triage</button>
+  <button class="active" data-mode="tabs">A · Temp tabs</button>
+  <button data-mode="breadcrumb">B · Breadcrumb</button>
+  <button data-mode="triage">C · Triage</button>
+  <button data-mode="switcher">D · Banner switcher</button>
+  <button data-mode="pinboard">E · Banner + tabs</button>
 </div>
 
 <script>
@@ -988,12 +1041,13 @@ const CRIMINAL_ROWS = {
 };
 
 /* --- The businesses --- */
-const BUSINESSES = [
+const BASE_BUSINESSES = [
   {
     id: 'main',
     name: 'Blue Oak Technologies LLC',
     shortName: 'Blue Oak Technologies',
     relation: 'Applicant',
+    owners: ['Daniel Reyes', 'Priya Anand'],
     primary: true,
     inputs: {
       'Business': [
@@ -1032,6 +1086,7 @@ const BUSINESSES = [
     name: 'Marina Holdings LLC',
     shortName: 'Marina Holdings',
     relation: 'Owner 2 · 40% stake',
+    owners: ['Priya Anand', 'Grace Okonkwo'],
     inputs: makeInputs('Marina Holdings LLC', '88 King Street, San Francisco, CA 94107', '82-5567190'),
     sections: makeSections({
       criminal: { status: 'review', flag: true,
@@ -1052,6 +1107,7 @@ const BUSINESSES = [
     name: 'Coastal Freight Partners LLC',
     shortName: 'Coastal Freight',
     relation: 'Frequent transactions',
+    owners: ['Marcus Webb'],
     inputs: makeInputs('Coastal Freight Partners LLC', '410 Harbor Blvd, Oakland, CA 94607', '87-1104482'),
     sections: makeSections({
       bankruptcy: { status: 'review', flag: true,
@@ -1072,46 +1128,158 @@ const BUSINESSES = [
   },
   /* --- clean associated businesses --- */
   ...[
-    ['pacific-crest', 'Pacific Crest Catering LLC', 'Owner 1'],
-    ['ridgeline', 'Ridgeline Property Group', 'Owner 2'],
-    ['bayline', 'Bayline Logistics Inc', 'Frequent transactions'],
-    ['sundial', 'Sundial Coffee Roasters LLC', 'Owner 2'],
-    ['northgate', 'Northgate Auto Repair', 'Unknown relation'],
-    ['emerald-bay', 'Emerald Bay Consulting', 'Owner 1'],
-    ['harbor-point', 'Harbor Point Realty LLC', 'Owner 2'],
-    ['twin-peaks', 'Twin Peaks Web Services', 'Frequent transactions'],
-    ['golden-gate', 'Golden Gate Textiles', 'Unknown relation'],
-    ['cypress-lane', 'Cypress Lane Bakery', 'Owner 2'],
-    ['redwood', 'Redwood Analytics LLC', 'Owner 1'],
-    ['mission-bay', 'Mission Bay Imports', 'Frequent transactions'],
-  ].map(([id, name, relation]) => ({
-    id, name, relation,
+    ['pacific-crest', 'Pacific Crest Catering LLC', 'Owner 1', ['Daniel Reyes']],
+    ['ridgeline', 'Ridgeline Property Group', 'Owner 2', ['Priya Anand', 'Tomas Ferreira']],
+    ['bayline', 'Bayline Logistics Inc', 'Frequent transactions', ['Marcus Webb']],
+    ['sundial', 'Sundial Coffee Roasters LLC', 'Owner 2', ['Priya Anand']],
+    ['northgate', 'Northgate Auto Repair', 'Unknown relation', ['Ellis Nakamura']],
+    ['emerald-bay', 'Emerald Bay Consulting', 'Owner 1', ['Daniel Reyes', 'Ruth Vasquez']],
+    ['harbor-point', 'Harbor Point Realty LLC', 'Owner 2', ['Priya Anand']],
+    ['twin-peaks', 'Twin Peaks Web Services', 'Frequent transactions', ['Ellis Nakamura']],
+    ['golden-gate', 'Golden Gate Textiles', 'Unknown relation', ['Amara Diallo']],
+    ['cypress-lane', 'Cypress Lane Bakery', 'Owner 2', ['Priya Anand', 'Grace Okonkwo']],
+    ['redwood', 'Redwood Analytics LLC', 'Owner 1', ['Daniel Reyes']],
+    ['mission-bay', 'Mission Bay Imports', 'Frequent transactions', ['Tomas Ferreira']],
+  ].map(([id, name, relation, owners]) => ({
+    id, name, relation, owners,
     shortName: name.replace(/ (LLC|Inc|Group)$/, ''),
     inputs: makeInputs(name),
     sections: makeSections(),
   })),
 ];
 
-/* Derived helpers */
-BUSINESSES.forEach((b) => {
-  b.status = b.sections.some((s) => s.status === 'fail') ? 'fail'
-           : b.sections.some((s) => s.status === 'review') ? 'review' : 'pass';
-  b.flagged = !b.primary && b.status !== 'pass';
-});
+/* --- Heavy scenario: 4 extra flagged + 4 extra clean businesses.
+   Exists so the >3-flagged states (chip overflow, long tab strips,
+   scrolling triage lists) are reachable in the prototype. The default
+   scenario stays at 2 flagged, which is what CLEAR typically returns. --- */
+const HEAVY_FLAGGED = [
+  {
+    id: 'stonebridge',
+    name: 'Stonebridge Equipment Leasing LLC',
+    shortName: 'Stonebridge Equipment',
+    relation: 'Owner 1 · 25% stake',
+    owners: ['Daniel Reyes', 'Ruth Vasquez'],
+    inputs: makeInputs('Stonebridge Equipment Leasing LLC', '2200 Alameda Ave, Oakland, CA 94601', '85-3390274'),
+    sections: makeSections({
+      judgements: { status: 'review', flag: true,
+        checks: [['Open judgements', 'Yes'], ['Recent judgements', 'Yes'], ['High value judgements', 'Yes']],
+        columns: ['Creditor', 'Court', 'Amount', 'Status', 'Filing Date'],
+        rows: [
+          ['Meridian Capital Group', 'Alameda County Superior', '$312,400', 'Open', '2025-03-08'],
+          ['Pacific Equipment Finance', 'Alameda County Superior', '$47,900', 'Satisfied', '2023-07-22'],
+        ] },
+      lawsuits: { status: 'review',
+        checks: [['Open lawsuits', 'Yes'], ['Recent lawsuits', 'Yes'], ['Plaintiff is a lender', 'Yes']],
+        columns: ['Plaintiff', 'Case Type', 'Court', 'Status', 'Filing Date'],
+        rows: [['Meridian Capital Group', 'Breach of Contract', 'Alameda County Superior', 'Open', '2025-02-19']] },
+    }),
+  },
+  {
+    id: 'alder-creek',
+    name: 'Alder Creek Farms Inc',
+    shortName: 'Alder Creek Farms',
+    relation: 'Frequent transactions',
+    owners: ['Amara Diallo'],
+    inputs: makeInputs('Alder Creek Farms Inc', '7714 County Road 12, Modesto, CA 95354', '86-2218840'),
+    sections: makeSections({
+      sanctions: { status: 'fail', flag: true,
+        checks: [['OFAC match', 'No'], ['Watchlist match', 'Yes'], ['PEP match', 'Yes']],
+        columns: ['List', 'Matched Name', 'Match Score', 'Program', 'Listed Date'],
+        rows: [
+          ['Interpol Red Notice', 'Alder Creek Holdings Ltd', '88%', 'Financial Crime', '2023-11-02'],
+          ['PEP Register', 'D. Alderman', '74%', 'Domestic PEP', '2021-04-15'],
+        ] },
+    }),
+  },
+  {
+    id: 'westfield',
+    name: 'Westfield Storage Group',
+    shortName: 'Westfield Storage',
+    relation: 'Owner 3 · 15% stake',
+    owners: ['Ellis Nakamura', 'Tomas Ferreira'],
+    inputs: makeInputs('Westfield Storage Group', '3390 Industrial Way, San Jose, CA 95112', '83-7745023'),
+    sections: makeSections({
+      licenses: { status: 'review', flag: true,
+        checks: [['Expired business license', 'Yes'], ['Revoked license', 'No']],
+        columns: ['License Type', 'Issuing Authority', 'Number', 'Status', 'Expiry Date'],
+        rows: [['Self-Storage Operator', 'CA Dept of Consumer Affairs', 'SS-114820', 'Expired', '2024-08-31']] },
+      'business-overview': { status: 'review',
+        checks: [['SOS status inactive', 'Yes'], ['Business age < 2 years', 'No']],
+        columns: ['Entity Name', 'SOS Status', 'Jurisdiction', 'Registered', 'Last Filing'],
+        rows: [['Westfield Storage Group', 'Suspended', 'California', '2016-05-11', '2023-01-09']] },
+    }),
+  },
+  {
+    id: 'kestrel',
+    name: 'Kestrel Marine Supply LLC',
+    shortName: 'Kestrel Marine',
+    relation: 'Unknown relation',
+    owners: ['Grace Okonkwo'],
+    inputs: makeInputs('Kestrel Marine Supply LLC', '55 Embarcadero Cove, Oakland, CA 94606', '88-0093317'),
+    sections: makeSections({
+      liens: { status: 'review', flag: true,
+        checks: [['Active tax liens', 'Yes'], ['Recent lien filings', 'Yes'], ['Released liens', 'Yes']],
+        columns: ['Lien Type', 'Filing Authority', 'Amount', 'Status', 'Filing Date'],
+        rows: [
+          ['Federal Tax Lien', 'IRS', '$208,750', 'Active', '2025-04-02'],
+          ['Mechanics Lien', 'Port of Oakland', '$31,100', 'Active', '2024-12-14'],
+        ] },
+      judgements: { status: 'review',
+        checks: [['Open judgements', 'Yes'], ['Recent judgements', 'No'], ['High value judgements', 'No']],
+        columns: ['Creditor', 'Court', 'Amount', 'Status', 'Filing Date'],
+        rows: [['Bayside Marine Fuels', 'Alameda County Superior', '$18,400', 'Open', '2022-10-05']] },
+    }),
+  },
+];
+
+const HEAVY_CLEAN = [
+  ['seacliff', 'Seacliff Interiors LLC', 'Owner 1', ['Daniel Reyes']],
+  ['lantern-bay', 'Lantern Bay Media Inc', 'Frequent transactions', ['Amara Diallo']],
+  ['foxglove', 'Foxglove Pharmacy', 'Owner 3', ['Ellis Nakamura']],
+  ['crestview', 'Crestview Tooling LLC', 'Unknown relation', ['Ruth Vasquez', 'Marcus Webb']],
+].map(([id, name, relation, owners]) => ({
+  id, name, relation, owners,
+  shortName: name.replace(/ (LLC|Inc|Group)$/, ''),
+  inputs: makeInputs(name),
+  sections: makeSections(),
+}));
+
+/* BUSINESSES is rebuilt when the scenario toggle changes. Flagged extras
+   are spliced in after the base flagged ones so tab/list order stays
+   flag-first. */
+let BUSINESSES = [];
+function buildBusinesses(scenario) {
+  BUSINESSES = scenario === 'heavy'
+    ? [...BASE_BUSINESSES.slice(0, 3), ...HEAVY_FLAGGED, ...BASE_BUSINESSES.slice(3), ...HEAVY_CLEAN]
+    : [...BASE_BUSINESSES];
+  BUSINESSES.forEach((b) => {
+    b.status = b.sections.some((s) => s.status === 'fail') ? 'fail'
+             : b.sections.some((s) => s.status === 'review') ? 'review' : 'pass';
+    b.flagged = !b.primary && b.status !== 'pass';
+  });
+}
 const byId = (id) => BUSINESSES.find((b) => b.id === id);
 
 /* =====================================================================
    STATE
    mode 'tabs'      → Variation A: overflow picks become dismissable tabs
    mode 'breadcrumb'→ Variation B: overflow picks drill in with breadcrumb
+   mode 'triage'    → Variation C: banner + drill-in with breadcrumb
+   mode 'switcher'  → Variation D: banner IS the switcher, no tabs, no crumb
+   mode 'pinboard'  → Variation E: flagged pinned as tabs, banner replaces
+                      the overflow dropdown, picks become temp tabs
    ===================================================================== */
 const state = {
-  mode: 'tabs',        // 'tabs' | 'breadcrumb' | 'triage'
+  mode: 'tabs',        // 'tabs' | 'breadcrumb' | 'triage' | 'switcher' | 'pinboard'
+  scenario: 'typical', // 'typical' (2 flagged / 14) | 'heavy' (6 flagged / 22)
   currentId: 'main',
-  tempTabs: [],        // ids opened from overflow (Variation A)
-  triageOpen: false,   // banner list expanded (Variation C)
+  tempTabs: [],        // ids opened from overflow (Variations A, E)
+  triageOpen: false,   // banner list expanded (Variations C, D, E)
   inputTab: 'Owner 1',
 };
+
+/* Variations whose entity navigation is driven by the banner */
+const BANNER_MODES = ['triage', 'switcher', 'pinboard'];
 
 const $ = (sel) => document.querySelector(sel);
 const statusLabel = { pass: 'Pass', review: 'Review', fail: 'Fail' };
@@ -1127,6 +1295,18 @@ function pinnedBusinesses() {
 function overflowBusinesses() {
   return BUSINESSES.filter((b) => !b.primary && !b.flagged);
 }
+/* A business is "on screen" if it already has a tab — pinned (applicant or
+   flagged) or opened as a temp tab. These are excluded from the overflow
+   list so the menu reflects what is left to open. */
+function isOnScreen(b) {
+  return b.primary || b.flagged || state.tempTabs.includes(b.id);
+}
+/* Secondary line in every business list. Shows owner names rather than the
+   relation — CLEAR does not reliably return why two businesses are linked,
+   but it does return who owns them. */
+function ownerLine(b) {
+  return b.owners && b.owners.length ? b.owners.join(', ') : '—';
+}
 
 function renderEntityStrip() {
   const strip = $('#entityStrip');
@@ -1134,18 +1314,26 @@ function renderEntityStrip() {
   const current = byId(state.currentId);
   const isOverflowCurrent = !current.primary && !current.flagged;
 
+  /* Variation D: the banner is the only navigation — no strip, no crumb */
+  if (state.mode === 'switcher') {
+    strip.style.display = 'none';
+    crumb.style.display = 'none';
+    return;
+  }
+
   /* Variation C: no entity strip at all — banner + breadcrumb only */
   if (state.mode === 'triage') {
     strip.style.display = 'none';
     if (current.primary) { crumb.style.display = 'none'; return; }
     crumb.style.display = 'flex';
+    const applicantName = BUSINESSES.find((b) => b.primary).name;
     crumb.innerHTML = `
       <button class="crumb-link" id="crumbBack">
         <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
-        CLEAR Analysis
+        ${applicantName}
       </button>
       <span class="crumb-sep">/</span>
-      <button class="crumb-link" id="crumbSources">Other Business Sources</button>
+      <button class="crumb-link" id="crumbSources">Associated businesses</button>
       <span class="crumb-sep">/</span>
       <span class="crumb-current">${current.name}</span>
       <span class="badge ${badgeClass[current.status]}" style="margin-left:4px">${statusLabel[current.status]}</span>`;
@@ -1161,7 +1349,7 @@ function renderEntityStrip() {
     crumb.innerHTML = `
       <button class="crumb-link" id="crumbBack">
         <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
-        CLEAR Analysis
+        ${BUSINESSES.find((b) => b.primary).name}
       </button>
       <span class="crumb-sep">/</span>
       <span class="crumb-current">${current.name}</span>
@@ -1179,11 +1367,13 @@ function renderEntityStrip() {
       ${b.shortName}${b.primary ? ' (Main)' : ''}
     </button>`);
 
-  if (state.mode === 'tabs') {
+  /* Variations A and E both accumulate dismissable temp tabs */
+  if (state.mode === 'tabs' || state.mode === 'pinboard') {
     tabs.push(...state.tempTabs.map((id) => {
       const b = byId(id);
       return `
         <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
+          ${b.flagged ? '<span class="flag-dot"></span>' : ''}
           ${b.shortName}
           <span class="close-tab" data-close="${b.id}" title="Dismiss">
             <span class="material-symbols-rounded">close</span>
@@ -1192,23 +1382,44 @@ function renderEntityStrip() {
     }));
   }
 
-  const hiddenCount = overflowBusinesses().length - (state.mode === 'tabs' ? state.tempTabs.length : 0);
-  strip.innerHTML = tabs.join('') + `
-    <button class="overflow-btn" id="overflowBtn">
-      +${hiddenCount} more businesses
-      <span class="material-symbols-rounded">expand_more</span>
-    </button>
-    <div class="overflow-menu" id="overflowMenu">
-      <p class="menu-header">All associated businesses</p>
-      ${BUSINESSES.filter((b) => !b.primary).map((b) => `
-        <button class="overflow-item" data-biz="${b.id}">
-          <span>
-            <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
-            <div class="biz-relation">${b.relation}</div>
-          </span>
-          <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
-        </button>`).join('')}
-    </div>`;
+  /* Variation E gets no overflow control — the banner replaces it.
+     Variation A lists only what is NOT already on screen; Variation B keeps
+     the original "all associated businesses" menu as the baseline. */
+  let controls = '';
+  if (state.mode !== 'pinboard') {
+    const menuItems = state.mode === 'tabs'
+      ? BUSINESSES.filter((b) => !isOnScreen(b))
+      : BUSINESSES.filter((b) => !b.primary);
+
+    if (menuItems.length) {
+      controls = `
+        <button class="overflow-btn" id="overflowBtn">
+          +${menuItems.length} more businesses
+          <span class="material-symbols-rounded">expand_more</span>
+        </button>
+        <div class="overflow-menu" id="overflowMenu">
+          <p class="menu-header">${state.mode === 'tabs' ? 'Not yet open' : 'All associated businesses'}</p>
+          ${menuItems.map((b) => `
+            <button class="overflow-item" data-biz="${b.id}">
+              <span>
+                <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+                <div class="biz-relation">${ownerLine(b)}</div>
+              </span>
+              <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+            </button>`).join('')}
+        </div>`;
+    } else if (state.tempTabs.length) {
+      /* Every business is open — the count would read "+0 more", which is a
+         dead control. Swap it for the inverse action. */
+      controls = `
+        <button class="overflow-btn collapse-all" id="collapseAllBtn">
+          <span class="material-symbols-rounded">unfold_less</span>
+          Collapse all
+        </button>`;
+    }
+  }
+
+  strip.innerHTML = tabs.join('') + controls;
 
   strip.querySelectorAll('.entity-tab').forEach((tab) =>
     tab.addEventListener('click', (e) => {
@@ -1216,7 +1427,8 @@ function renderEntityStrip() {
       if (closeId) { dismissTempTab(closeId); return; }
       selectBusiness(tab.dataset.biz);
     }));
-  $('#overflowBtn').addEventListener('click', (e) => {
+  $('#collapseAllBtn')?.addEventListener('click', collapseAllTempTabs);
+  $('#overflowBtn')?.addEventListener('click', (e) => {
     e.stopPropagation();
     const btn = e.currentTarget;
     const menu = $('#overflowMenu');
@@ -1247,12 +1459,19 @@ function dismissTempTab(id) {
   render();
 }
 
+function collapseAllTempTabs() {
+  if (state.tempTabs.includes(state.currentId)) state.currentId = 'main';
+  state.tempTabs = [];
+  render();
+}
+
 function selectBusiness(id) {
   const b = byId(id);
   state.currentId = id;
   state.inputTab = b.primary ? 'Owner 1' : 'Business';
-  /* Variation A: picking an overflow business opens it as a temp tab */
-  if (state.mode === 'tabs' && !b.primary && !b.flagged && !state.tempTabs.includes(id)) {
+  /* Variations A and E: picking a clean business opens it as a temp tab */
+  const usesTempTabs = state.mode === 'tabs' || state.mode === 'pinboard';
+  if (usesTempTabs && !b.primary && !b.flagged && !state.tempTabs.includes(id)) {
     state.tempTabs.push(id);
   }
   render();
@@ -1302,51 +1521,94 @@ function renderOutputs() {
 }
 
 /* =====================================================================
-   OTHER BUSINESS SOURCES banner + triage list (Variation C)
+   OTHER BUSINESS SOURCES banner + triage list (Variations C, D, E)
+
+   C · triage   — banner is a launcher; it disappears once you drill in and
+                  a breadcrumb takes over. This is the behaviour the
+                  feedback flagged (C1); kept as the baseline to compare.
+   D · switcher — banner persists on every entity and IS the switcher. No
+                  strip, no breadcrumb. Header rewrites to "Viewing: X" and
+                  the applicant is the first row, so leaving and returning
+                  are the same gesture.
+   E · pinboard — banner persists and replaces A's overflow dropdown.
+                  Flagged stay pinned as tabs; picks become temp tabs.
+
+   Chips are a shortcut, not an inventory: at most MAX_CHIPS render, then a
+   "+N" chip that opens the list rather than navigating. The "N of M
+   flagged" summary always carries the true count.
    ===================================================================== */
+const MAX_CHIPS = 3;
+
 function flaggedSectionTitles(b) {
   return b.sections.filter((s) => s.status !== 'pass').map((s) => s.title).join(' · ');
 }
 
 function renderTriage() {
   const wrap = $('#triageWrap');
-  if (state.mode !== 'triage' || state.currentId !== 'main') {
+  const onApplicant = state.currentId === 'main';
+  /* C is the only banner mode that hides itself on drill-in */
+  const hidden = !BANNER_MODES.includes(state.mode)
+              || (state.mode === 'triage' && !onApplicant);
+  if (hidden) {
     wrap.style.display = 'none';
     wrap.innerHTML = '';
     return;
   }
+
+  const current = byId(state.currentId);
+  const applicant = BUSINESSES.find((b) => b.primary);
   const associated = BUSINESSES.filter((b) => !b.primary);
   const flagged = associated.filter((b) => b.flagged);
   const clean = associated.filter((b) => !b.flagged);
+  /* D lists the applicant alongside its peers — same row, same treatment */
+  const showApplicantRow = state.mode === 'switcher';
 
   const row = (b) => `
-    <button class="triage-row" data-biz="${b.id}">
+    <button class="triage-row ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
       ${b.flagged ? '<span class="flag-dot"></span>' : ''}
       <span>
         <span class="biz-name">${b.name}</span>
-        <div class="biz-relation">${b.relation}</div>
+        <div class="biz-relation">${ownerLine(b)}</div>
         ${b.flagged ? `<div class="flagged-sections">${flaggedSectionTitles(b)}</div>` : ''}
       </span>
       <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
-      <span class="material-symbols-rounded row-chevron" style="font-size:18px">chevron_right</span>
+      ${state.mode === 'triage'
+        ? '<span class="material-symbols-rounded row-chevron" style="font-size:18px">chevron_right</span>'
+        : `<span class="material-symbols-rounded row-chevron"
+             style="font-size:18px;visibility:${b.id === state.currentId ? 'visible' : 'hidden'}">check</span>`}
     </button>`;
+
+  const chip = (b, extraClass = '') => `
+    <span class="triage-chip ${extraClass} ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
+      ${b.flagged ? '<span class="flag-dot"></span>' : ''}${b.shortName}
+    </span>`;
+
+  const shownChips = flagged.slice(0, MAX_CHIPS);
+  const restCount = flagged.length - shownChips.length;
+  /* In D, an applicant chip keeps "back" one click away without opening the list */
+  const applicantChip = (state.mode === 'switcher' && !onApplicant)
+    ? chip(applicant, 'applicant-chip') : '';
+  const overflowChip = restCount
+    ? `<span class="triage-chip more-chip" data-more="1">+${restCount}</span>` : '';
+
+  const header = (state.mode === 'switcher' && !onApplicant)
+    ? `<span class="banner-title">Viewing</span>
+       <span class="banner-summary banner-current">${current.name}</span>
+       <span class="badge ${badgeClass[current.status]}">${statusLabel[current.status]}</span>`
+    : `<span class="banner-title">Other Business Sources</span>
+       <span class="banner-summary">${flagged.length} of ${associated.length} businesses flagged</span>`;
 
   wrap.style.display = 'block';
   wrap.innerHTML = `
     <div class="triage-banner ${state.triageOpen ? 'open' : ''}">
       <button class="triage-banner-header" id="triageToggle">
         <span class="material-symbols-rounded banner-icon">source_environment</span>
-        <span class="banner-title">Other Business Sources</span>
-        <span class="banner-summary">${flagged.length} of ${associated.length} businesses flagged</span>
-        <span class="banner-chips">
-          ${flagged.map((b) => `
-            <span class="triage-chip" data-biz="${b.id}">
-              <span class="flag-dot"></span>${b.shortName}
-            </span>`).join('')}
-        </span>
+        ${header}
         <span class="material-symbols-rounded banner-caret">expand_more</span>
+        <span class="banner-chips">${applicantChip}${shownChips.map((b) => chip(b)).join('')}${overflowChip}</span>
       </button>
       <div class="triage-list">
+        ${showApplicantRow ? `<p class="triage-group-label">Applicant</p>${row(applicant)}` : ''}
         ${flagged.length ? `<p class="triage-group-label">Flagged (${flagged.length})</p>` : ''}
         ${flagged.map(row).join('')}
         <p class="triage-group-label">No flags (${clean.length})</p>
@@ -1355,7 +1617,13 @@ function renderTriage() {
     </div>`;
 
   $('#triageToggle').addEventListener('click', (e) => {
-    /* chips inside the header navigate; the header itself toggles the list */
+    /* chips inside the header navigate; "+N" opens the list; the header
+       itself toggles the list */
+    if (e.target.closest('.more-chip')) {
+      state.triageOpen = true;
+      renderTriage();
+      return;
+    }
     const chipId = e.target.closest('.triage-chip')?.dataset.biz;
     if (chipId) { selectBusiness(chipId); return; }
     state.triageOpen = !state.triageOpen;
@@ -1481,38 +1749,48 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawe
    VARIATION TOGGLE
    ===================================================================== */
 const protoToggle = $('#protoToggle');
+const scenarioToggle = $('#scenarioToggle');
 
-function setMode(mode) {
-  state.mode = mode;
+/* Both toggles behave identically: collapsed shows only the active option,
+   clicking expands, clicking the active option collapses again. */
+function wireToggle(el, key, apply) {
+  el.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const value = btn.dataset[key];
+      if (el.classList.contains('collapsed')) { el.classList.remove('collapsed'); return; }
+      if (value === state[key]) { el.classList.add('collapsed'); return; }
+      apply(value);
+      el.querySelectorAll('button').forEach((b) =>
+        b.classList.toggle('active', b.dataset[key] === value));
+      el.classList.add('collapsed');
+    });
+  });
+}
+
+function resetNav() {
   state.currentId = 'main';
   state.tempTabs = [];
   state.triageOpen = false;
   state.inputTab = 'Owner 1';
-  $('#modeTabs').classList.toggle('active', mode === 'tabs');
-  $('#modeBreadcrumb').classList.toggle('active', mode === 'breadcrumb');
-  $('#modeTriage').classList.toggle('active', mode === 'triage');
-  protoToggle.classList.add('collapsed');
-  render();
 }
 
-protoToggle.querySelectorAll('button').forEach((btn) => {
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const mode = btn.dataset.mode;
-    if (protoToggle.classList.contains('collapsed')) {
-      protoToggle.classList.remove('collapsed');
-      return;
-    }
-    if (mode === state.mode) {
-      protoToggle.classList.add('collapsed');
-      return;
-    }
-    setMode(mode);
-  });
+wireToggle(protoToggle, 'mode', (mode) => {
+  state.mode = mode;
+  resetNav();
+  render();
+});
+
+wireToggle(scenarioToggle, 'scenario', (scenario) => {
+  state.scenario = scenario;
+  buildBusinesses(scenario);
+  resetNav();
+  render();
 });
 
 document.addEventListener('click', (e) => {
   if (!protoToggle.contains(e.target)) protoToggle.classList.add('collapsed');
+  if (!scenarioToggle.contains(e.target)) scenarioToggle.classList.add('collapsed');
 });
 
 /* Top nav segmented tabs — visual switching only (pages not prototyped) */
@@ -1522,6 +1800,7 @@ document.querySelectorAll('.topbar-tab').forEach((tab) =>
     tab.classList.add('active');
   }));
 
+buildBusinesses(state.scenario);
 render();
 </script>
 </body>
