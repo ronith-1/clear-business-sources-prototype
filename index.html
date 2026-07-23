@@ -786,6 +786,28 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
   color: var(--color-text-tertiary);
 }
 .assoc-btn .badge { margin-left: 2px; }
+.assoc-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--color-border);
+  margin: 0 2px;
+}
+/* Group headings carry the status marker */
+.menu-header, .triage-group-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.head-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--color-fail); flex-shrink: 0;
+}
+.head-icon {
+  font-size: 14px;
+  color: var(--color-pass);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+  flex-shrink: 0;
+}
 .overflow-menu .menu-header + .overflow-item { border-top: none; }
 
 /* ============ Prototype control panel ============ */
@@ -1483,12 +1505,13 @@ function renderEntityStrip() {
       <button class="overflow-btn assoc-btn" id="overflowBtn">
         Associated businesses
         <span class="assoc-count">${associated.length}</span>
-        ${flagged.length ? `<span class="badge badge-review">${flagged.length} Needs Review</span>` : ''}
+        ${flagged.length ? `<span class="assoc-divider"></span>
+          <span class="badge badge-review">${flagged.length}</span>` : ''}
         <span class="material-symbols-rounded">expand_more</span>
       </button>
       <div class="overflow-menu" id="overflowMenu">
-        ${flagged.length ? `<p class="menu-header">Flagged (${flagged.length})</p>${flagged.map(menuItem).join('')}` : ''}
-        <p class="menu-header">No flags (${clean.length})</p>
+        ${flagged.length ? `${groupHead('flagged', flagged.length)}${flagged.map(menuItem).join('')}` : ''}
+        ${groupHead('clean', clean.length)}
         ${clean.map(menuItem).join('')}
       </div>`;
     wireStrip(strip);
@@ -1548,6 +1571,15 @@ function renderEntityStrip() {
 
   strip.innerHTML = tabs.join('') + controls;
   wireStrip(strip);
+}
+
+/* Group heading shared by the dropdown and the triage list. Flagged gets a
+   red marker, clean a check — the heading carries the signal so the rows
+   below it do not have to. */
+function groupHead(kind, count, cls = 'menu-header') {
+  return kind === 'flagged'
+    ? `<p class="${cls}"><span class="head-dot"></span>Flagged (${count})</p>`
+    : `<p class="${cls}"><span class="material-symbols-rounded head-icon">check_circle</span>No flags (${count})</p>`;
 }
 
 /* One row in any business dropdown */
@@ -1754,9 +1786,9 @@ function renderTriage() {
       </button>
       <div class="triage-list">
         ${showApplicantRow ? `<p class="triage-group-label">Applicant</p>${row(applicant)}` : ''}
-        ${flagged.length ? `<p class="triage-group-label">Flagged (${flagged.length})</p>` : ''}
+        ${flagged.length ? groupHead('flagged', flagged.length, 'triage-group-label') : ''}
         ${flagged.map(row).join('')}
-        <p class="triage-group-label">No flags (${clean.length})</p>
+        ${groupHead('clean', clean.length, 'triage-group-label')}
         ${clean.map(row).join('')}
       </div>
     </div>`;
