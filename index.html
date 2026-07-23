@@ -288,7 +288,6 @@ body {
 }
 .overflow-item:hover { background: var(--color-surface-z2); }
 .overflow-item .biz-name { font: var(--font-body2); color: var(--color-text-primary); }
-.overflow-item .biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
 .overflow-item .result { font: var(--font-body2-medium); flex-shrink: 0; }
 
 /* Breadcrumb bar (Variation B) */
@@ -702,7 +701,6 @@ body {
 }
 .triage-row:hover { background: var(--color-surface-z2); }
 .triage-row .biz-name { font: var(--font-body2); color: var(--color-text-primary); }
-.triage-row .biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
 .triage-row .flagged-sections { font: var(--font-secondary); color: var(--review-text); margin-top: 2px; }
 .triage-row .result { font: var(--font-body2-medium); margin-left: auto; flex-shrink: 0; }
 .triage-row .row-chevron { color: var(--color-text-tertiary); flex-shrink: 0; }
@@ -1301,12 +1299,6 @@ function overflowBusinesses() {
 function isOnScreen(b) {
   return b.primary || b.flagged || state.tempTabs.includes(b.id);
 }
-/* Secondary line in every business list. Shows owner names rather than the
-   relation — CLEAR does not reliably return why two businesses are linked,
-   but it does return who owns them. */
-function ownerLine(b) {
-  return b.owners && b.owners.length ? b.owners.join(', ') : '—';
-}
 
 function renderEntityStrip() {
   const strip = $('#entityStrip');
@@ -1399,10 +1391,7 @@ function renderEntityStrip() {
           <p class="menu-header">${state.mode === 'tabs' ? 'Not yet open' : 'All associated businesses'}</p>
           ${menuItems.map((b) => `
             <button class="overflow-item" data-biz="${b.id}">
-              <span>
-                <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
-                <div class="biz-relation">${ownerLine(b)}</div>
-              </span>
+              <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
               <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
             </button>`).join('')}
         </div>`;
@@ -1566,7 +1555,6 @@ function renderTriage() {
       ${b.flagged ? '<span class="flag-dot"></span>' : ''}
       <span>
         <span class="biz-name">${b.name}</span>
-        <div class="biz-relation">${ownerLine(b)}</div>
         ${b.flagged ? `<div class="flagged-sections">${flaggedSectionTitles(b)}</div>` : ''}
       </span>
       ${b.id === state.currentId
