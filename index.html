@@ -752,6 +752,25 @@ body {
 /* ---- Scenario toggle sits above the variation toggle ---- */
 .proto-toggle.scenario-toggle { bottom: 68px; }
 
+/* ---- Variation F: applicant pill | associated businesses menu ---- */
+.strip-divider {
+  width: 1px;
+  align-self: stretch;
+  min-height: 24px;
+  background: var(--color-border);
+  margin: 0 4px;
+}
+.overflow-btn.assoc-btn {
+  border-style: solid;
+  color: var(--color-text-primary);
+}
+.assoc-btn .assoc-count {
+  font: var(--font-body2-medium);
+  color: var(--color-text-tertiary);
+}
+.assoc-btn .badge { margin-left: 2px; }
+.overflow-menu .menu-header + .overflow-item { border-top: none; }
+
 /* ============ Prototype control panel ============ */
 .panel-btn {
   position: fixed;
@@ -999,6 +1018,7 @@ body.hide-subtext .biz-relation { display: none; }
       <button data-mode="triage">C · Triage</button>
       <button data-mode="switcher">D · Banner switcher</button>
       <button data-mode="pinboard">E · Banner + tabs</button>
+      <button data-mode="grouped">F · Grouped menu</button>
     </div>
   </div>
 
@@ -1333,9 +1353,11 @@ const byId = (id) => BUSINESSES.find((b) => b.id === id);
    mode 'switcher'  → Variation D: banner IS the switcher, no tabs, no crumb
    mode 'pinboard'  → Variation E: flagged pinned as tabs, banner replaces
                       the overflow dropdown, picks become temp tabs
+   mode 'grouped'   → Variation F: applicant pill + one labelled
+                      "Associated businesses" menu, grouped flagged/clean
    ===================================================================== */
 const state = {
-  mode: 'tabs',        // 'tabs' | 'breadcrumb' | 'triage' | 'switcher' | 'pinboard'
+  mode: 'tabs',        // 'tabs'|'breadcrumb'|'triage'|'switcher'|'pinboard'|'grouped'
   scenario: 'typical', // 'typical' (2 flagged / 14) | 'heavy' (6 flagged / 22)
   currentId: 'main',
   tempTabs: [],        // ids opened from overflow (Variations A, E)
@@ -1407,7 +1429,8 @@ function renderEntityStrip() {
   }
 
   /* Variation B, drilled into an overflow business → breadcrumb replaces strip */
-  if (state.mode === 'breadcrumb' && isOverflowCurrent) {
+  if ((state.mode === 'breadcrumb' && isOverflowCurrent)
+      || (state.mode === 'grouped' && !current.primary)) {
     strip.style.display = 'none';
     crumb.style.display = 'flex';
     crumb.innerHTML = `
@@ -1423,6 +1446,32 @@ function renderEntityStrip() {
 
   crumb.style.display = 'none';
   strip.style.display = 'flex';
+
+  /* Variation F: applicant pill, a divider, then everything else behind one
+     "Associated businesses" control. A row of bare pills reads as filters
+     and never states what the pills are; this labels them once. */
+  if (state.mode === 'grouped') {
+    const applicant = BUSINESSES.find((b) => b.primary);
+    const associated = BUSINESSES.filter((b) => !b.primary);
+    const flagged = associated.filter((b) => b.flagged);
+    const clean = associated.filter((b) => !b.flagged);
+    strip.innerHTML = `
+      <button class="entity-tab active" data-biz="${applicant.id}">${applicant.shortName} (Main)</button>
+      <span class="strip-divider"></span>
+      <button class="overflow-btn assoc-btn" id="overflowBtn">
+        Associated businesses
+        <span class="assoc-count">${associated.length}</span>
+        ${flagged.length ? `<span class="badge badge-review">${flagged.length} Needs Review</span>` : ''}
+        <span class="material-symbols-rounded">expand_more</span>
+      </button>
+      <div class="overflow-menu" id="overflowMenu">
+        ${flagged.length ? `<p class="menu-header">Flagged (${flagged.length})</p>${flagged.map(menuItem).join('')}` : ''}
+        <p class="menu-header">No flags (${clean.length})</p>
+        ${clean.map(menuItem).join('')}
+      </div>`;
+    wireStrip(strip);
+    return;
+  }
 
   const tabs = pinnedBusinesses().map((b) => `
     <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
@@ -1462,14 +1511,7 @@ function renderEntityStrip() {
         </button>
         <div class="overflow-menu" id="overflowMenu">
           <p class="menu-header">${state.mode === 'tabs' ? 'Not yet open' : 'All associated businesses'}</p>
-          ${menuItems.map((b) => `
-            <button class="overflow-item" data-biz="${b.id}">
-              <span>
-                <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
-                ${ownerLine(b)}
-              </span>
-              <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
-            </button>`).join('')}
+          ${menuItems.map(menuItem).join('')}
         </div>`;
     } else if (state.tempTabs.length) {
       /* Every business is open — the count would read "+0 more", which is a
@@ -1483,7 +1525,22 @@ function renderEntityStrip() {
   }
 
   strip.innerHTML = tabs.join('') + controls;
+  wireStrip(strip);
+}
 
+/* One row in any business dropdown */
+function menuItem(b) {
+  return `
+    <button class="overflow-item" data-biz="${b.id}">
+      <span>
+        <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+        ${ownerLine(b)}
+      </span>
+      <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+    </button>`;
+}
+
+function wireStrip(strip) {
   strip.querySelectorAll('.entity-tab').forEach((tab) =>
     tab.addEventListener('click', (e) => {
       const closeId = e.target.closest('[data-close]')?.dataset.close;
@@ -1495,8 +1552,8 @@ function renderEntityStrip() {
     e.stopPropagation();
     const btn = e.currentTarget;
     const menu = $('#overflowMenu');
-    /* anchor the menu directly under the "+N more" button (strip is the
-       offset parent), clamped so it never spills past the card edge */
+    /* anchor the menu directly under its trigger (strip is the offset
+       parent), clamped so it never spills past the card edge */
     const maxLeft = strip.clientWidth - 380 /* menu width */ - 24;
     menu.style.left = Math.max(24, Math.min(btn.offsetLeft, maxLeft)) + 'px';
     menu.style.top = (btn.offsetTop + btn.offsetHeight + 4) + 'px';

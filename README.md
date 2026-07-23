@@ -13,11 +13,11 @@ This prototype explores how to represent those associated businesses in the revi
 - The UI follows a consistent rhythm: **summary → where data needs scrutiny → deep dive**.
 - Every associated business is a full peer of the applicant: same inputs, same output sections, same deep-dive drawer.
 
-## The five navigation variations
+## The six navigation variations
 
 Open the **Prototype** button at the bottom-right for the control panel. It holds everything:
 
-- **Nav variation** — A through E.
+- **Nav variation** — A through F.
 - **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
 - **Owner subtext** — shows or hides the owner names under each business name, across every variation. Pure visibility: the line is always rendered and a class on `<body>` hides it.
 
@@ -32,6 +32,9 @@ Open the **Prototype** button at the bottom-right for the control panel. It hold
 Both read `← Blue Oak Technologies LLC / Pacific Crest Catering LLC` — applicant as a link, current business in bold. C originally carried a third level, "Associated businesses", which landed on the applicant exactly like the first crumb; the two differed only in whether the banner list was left open. Back now returns you to the applicant in the state you left it, so that behaviour survives without a level of its own.
 | **D · Banner switcher** | Banner *is* the navigation | No tab strip, no breadcrumb. The banner persists on every entity and the header rewrites to `Viewing · Marina Holdings LLC`. The applicant is the first row in the list, so leaving and returning are the same gesture, and the list stays open across switches. |
 | **E · Banner + tabs** | Banner replaces the dropdown | Flagged stay pinned as tabs (as in A), but the banner replaces the "+N more" dropdown as the discovery surface. It persists and stays open while you pick, so opening several businesses in a row is one click each. |
+| **F · Grouped menu** | Applicant pill │ one labelled menu | Only the applicant is a pill. A divider, then a single **Associated businesses** control carrying the total and a **N Needs Review** tag. Opening it groups flagged above clean under overline headings. Picks drill in with the breadcrumb, as in B. |
+
+F answers a specific problem with A/B/E: a row of bare pills reads as a filter bar, and nothing on screen says what the pills *are* — the reviewer has to infer that they're associated businesses. F states it once, in words, and moves the flag count into a tag instead of leaving it as unexplained red dots.
 
 D and E are a single-axis test: **does a pinned tab strip earn its space once the banner is persistent?** D says no; E says flagged deserve permanent surfacing and the banner handles the long tail. The cost of E is redundant representation — a flagged business appears both as a tab and as a chip.
 
