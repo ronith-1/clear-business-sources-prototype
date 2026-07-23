@@ -1335,8 +1335,7 @@ function renderEntityStrip() {
       <span class="crumb-sep">/</span>
       <button class="crumb-link" id="crumbSources">Associated businesses</button>
       <span class="crumb-sep">/</span>
-      <span class="crumb-current">${current.name}</span>
-      <span class="badge ${badgeClass[current.status]}" style="margin-left:4px">${statusLabel[current.status]}</span>`;
+      <span class="crumb-current">${current.name}</span>`;
     $('#crumbBack').addEventListener('click', () => { state.triageOpen = false; selectBusiness('main'); });
     $('#crumbSources').addEventListener('click', () => { state.triageOpen = true; selectBusiness('main'); });
     return;
@@ -1352,8 +1351,7 @@ function renderEntityStrip() {
         ${BUSINESSES.find((b) => b.primary).name}
       </button>
       <span class="crumb-sep">/</span>
-      <span class="crumb-current">${current.name}</span>
-      <span class="badge ${badgeClass[current.status]}" style="margin-left:4px">${statusLabel[current.status]}</span>`;
+      <span class="crumb-current">${current.name}</span>`;
     $('#crumbBack').addEventListener('click', () => selectBusiness('main'));
     return;
   }
@@ -1571,7 +1569,11 @@ function renderTriage() {
         <div class="biz-relation">${ownerLine(b)}</div>
         ${b.flagged ? `<div class="flagged-sections">${flaggedSectionTitles(b)}</div>` : ''}
       </span>
-      <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+      ${b.id === state.currentId
+        /* empty spacer keeps the marker column right-aligned once the
+           duplicate status badge is dropped */
+        ? '<span class="result"></span>'
+        : `<span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>`}
       ${state.mode === 'triage'
         ? '<span class="material-symbols-rounded row-chevron" style="font-size:18px">chevron_right</span>'
         : `<span class="material-symbols-rounded row-chevron"
@@ -1593,8 +1595,7 @@ function renderTriage() {
 
   const header = (state.mode === 'switcher' && !onApplicant)
     ? `<span class="banner-title">Viewing</span>
-       <span class="banner-summary banner-current">${current.name}</span>
-       <span class="badge ${badgeClass[current.status]}">${statusLabel[current.status]}</span>`
+       <span class="banner-summary banner-current">${current.name}</span>`
     : `<span class="banner-title">Other Business Sources</span>
        <span class="banner-summary">${flagged.length} of ${associated.length} businesses flagged</span>`;
 
