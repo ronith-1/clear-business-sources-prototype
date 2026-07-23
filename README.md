@@ -13,44 +13,48 @@ This prototype explores how to represent those associated businesses in the revi
 - The UI follows a consistent rhythm: **summary → where data needs scrutiny → deep dive**.
 - Every associated business is a full peer of the applicant: same inputs, same output sections, same deep-dive drawer.
 
-## The six navigation variations
+## The two variations
 
-Open the **Prototype** button at the bottom-right for the control panel. It holds everything:
+Open the **Prototype** button at the bottom-right for the control panel.
 
-- **Nav variation** — A through F.
-- **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
-- **Owner subtext** — shows or hides the owner names under each business name, across every variation.
-- **Flag dot** — shows or hides the dot beside flagged businesses. **Off by default**: the status tag already carries the signal. The drawer's section-level flags are a different signal and are unaffected.
+| | Pattern | Idea |
+|---|---|---|
+| **Variation 1 · Grouped menu** | Applicant pill │ one labelled menu | Only the applicant is a pill, reading "Main business". A divider, then a single **Associated businesses** control carrying the total, a divider, and the flagged count in review styling. Opening it groups flagged above clean under marked headings. Picks drill in with a breadcrumb. |
+| **Variation 2 · Triage** | "Other Business Sources" banner | No entity pills. A banner summarises `2 of 14 businesses flagged` with chips for the flagged ones; expanding it shows a triage list, flagged first, each with the sections that tripped. Clicking a row drills in with the same breadcrumb. |
+
+### Variation 1 · Grouped menu
+
+- **Pro** — one labelled control states in words what the associated businesses are, so nothing on the strip can be mistaken for a filter bar.
+- **Pro** — it costs almost no vertical space, leaving the card's rhythm of inputs → outputs → deep dive intact.
+- **Con** — flagged businesses have no standing presence on screen; `2` is the only reminder they exist, and everything else is a click away.
+
+### Variation 2 · Triage
+
+- **Pro** — flagged businesses and the sections that tripped them are visible without opening anything, so the reviewer sees the work before choosing to do it.
+- **Pro** — the banner doubles as a progress surface: which businesses were flagged and how many remain is answerable at a glance.
+- **Con** — it occupies a large block above the applicant's own results and disappears on drill-in, so the switcher is absent exactly when you want to switch again.
+
+### Earlier explorations
+
+Four earlier passes are kept behind the panel's disclosure rather than deleted: **A · Temp tabs**, **B · Breadcrumb**, **D · Banner switcher**, **E · Banner + tabs**. D is worth reopening if Variation 2's disappearing banner turns out to be the deciding objection — it is the same triage banner made persistent, with the header rewriting to `Viewing · <business>`.
+
+Other panel controls:
+
+- **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long lists) are reachable.
+- **Owner subtext** — shows or hides the owner names under each business name.
+- **Flag dot** — shows or hides the dot beside flagged businesses. **Off by default**: the status tag already carries the signal. The drawer's section-level flags are unaffected.
 
 Both display switches are pure visibility — the markup is always rendered and a class on `<body>` hides it.
-
-| Variation | Pattern | Idea |
-|---|---|---|
-| **A · Temp tabs** | Entity tab strip on the card | Main business + flagged businesses are pinned tabs; picking a clean business from the "+N more" menu opens it as a dismissable tab. One metaphor (tabs) everywhere. |
-| **B · Breadcrumb** | Tabs + drill-in | Flagged businesses stay as tabs; picking a clean business replaces the card content with a breadcrumb back to the applicant. |
-| **C · Triage** | "Other Business Sources" banner | No entity tabs. A banner summarises `2 of 14 flagged` with clickable chips; expanding it shows a triage list (flagged first, with the sections that tripped), and clicking a row drills in with a breadcrumb. |
-
-### Breadcrumb (B and C)
-
-Both read `← Blue Oak Technologies LLC / Pacific Crest Catering LLC` — applicant as a link, current business in bold. C originally carried a third level, "Associated businesses", which landed on the applicant exactly like the first crumb; the two differed only in whether the banner list was left open. Back now returns you to the applicant in the state you left it, so that behaviour survives without a level of its own.
-| **D · Banner switcher** | Banner *is* the navigation | No tab strip, no breadcrumb. The banner persists on every entity and the header rewrites to `Viewing · Marina Holdings LLC`. The applicant is the first row in the list, so leaving and returning are the same gesture, and the list stays open across switches. |
-| **E · Banner + tabs** | Banner replaces the dropdown | Flagged stay pinned as tabs (as in A), but the banner replaces the "+N more" dropdown as the discovery surface. It persists and stays open while you pick, so opening several businesses in a row is one click each. |
-| **F · Grouped menu** | Applicant pill │ one labelled menu | Only the applicant is a pill. A divider, then a single **Associated businesses** control carrying the total, a divider, and the flagged count as a bare number in review styling. Opening it groups flagged above clean under overline headings. Picks drill in with the breadcrumb, as in B. |
-
-F answers a specific problem with A/B/E: a row of bare pills reads as a filter bar, and nothing on screen says what the pills *are* — the reviewer has to infer that they're associated businesses. F states it once, in words, and moves the flag count into a tag instead of leaving it as unexplained red dots.
-
-D and E are a single-axis test: **does a pinned tab strip earn its space once the banner is persistent?** D says no; E says flagged deserve permanent surfacing and the banner handles the long tail. The cost of E is redundant representation — a flagged business appears both as a tab and as a chip.
 
 In every variation, clicking any output row opens the **deep-dive drawer** scoped to the selected business — section tabs, per-check summary panel, and record tables.
 
 ## Interactions to try
 
-1. Click a flagged tab (Marina Holdings / Coastal Freight) — the whole card swaps to that business's inputs and outputs.
-2. Open "+12 more businesses" (A/B) or the banner (C/D/E) — the concealed clean businesses, each with its owners + outcome.
-3. In A, open several businesses in a row — each one leaves the menu as it opens. Open all of them and "+0 more" becomes **Collapse all**.
-4. In D, expand the banner and switch between three businesses without it ever closing.
-5. Switch the scenario to **Heavy** and look at C/D/E — the chips cap at three plus a `+N` that opens the list rather than navigating.
-6. Click the **Criminal Record** or **Liens** row on a flagged business — scoped drawer with real-looking records.
+1. In **Variation 1**, open **Associated businesses** — flagged above clean, each with its owners and outcome. Pick one; the card swaps to that business and a breadcrumb returns you.
+2. In **Variation 2**, expand the banner for the same list, then use a flagged chip to jump straight there.
+3. Switch the scenario to **Heavy** — Variation 1's counts become `22 │ 6`, and Variation 2's chips cap at three plus a `+N` that opens the list rather than navigating.
+4. Turn **Flag dot** on and off, and **Owner subtext** off, to see how much each is carrying.
+5. Click the **Criminal Record** or **Liens** row on a flagged business — scoped drawer with real-looking records.
 
 ## Notes
 

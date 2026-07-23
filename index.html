@@ -860,6 +860,25 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
   margin-bottom: 8px;
 }
 .proto-group .opts { display: flex; flex-direction: column; gap: 4px; }
+.proto-more { margin-top: 8px; }
+.proto-more summary {
+  font: var(--font-secondary);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  padding: 4px 2px;
+  list-style: none;
+}
+.proto-more summary::-webkit-details-marker { display: none; }
+.proto-more summary::before {
+  content: 'chevron_right';
+  font-family: 'Material Symbols Rounded';
+  font-size: 14px;
+  vertical-align: -2px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.proto-more[open] summary::before { transform: rotate(90deg); }
+.proto-more .opts { margin-top: 4px; }
 .proto-group .opts button {
   width: 100%;
   text-align: left;
@@ -902,7 +921,7 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
 }
 .proto-switch.on .track { background: var(--color-brand-primary); }
 .proto-switch.on .track::after { transform: translateX(16px); }
-.proto-hint {
+.proto-group > p.proto-hint {
   font: var(--font-secondary);
   color: var(--color-text-tertiary);
   text-transform: none;
@@ -1052,13 +1071,18 @@ body.hide-subtext .biz-relation { display: none; }
   <div class="proto-group" id="groupMode">
     <p>Nav variation</p>
     <div class="opts">
-      <button class="active" data-mode="tabs">A · Temp tabs</button>
-      <button data-mode="breadcrumb">B · Breadcrumb</button>
-      <button data-mode="triage">C · Triage</button>
-      <button data-mode="switcher">D · Banner switcher</button>
-      <button data-mode="pinboard">E · Banner + tabs</button>
-      <button data-mode="grouped">F · Grouped menu</button>
+      <button class="active" data-mode="grouped">Variation 1 · Grouped menu</button>
+      <button data-mode="triage">Variation 2 · Triage</button>
     </div>
+    <details class="proto-more">
+      <summary>Earlier explorations (4)</summary>
+      <div class="opts">
+        <button data-mode="tabs">A · Temp tabs</button>
+        <button data-mode="breadcrumb">B · Breadcrumb</button>
+        <button data-mode="switcher">D · Banner switcher</button>
+        <button data-mode="pinboard">E · Banner + tabs</button>
+      </div>
+    </details>
   </div>
 
   <div class="proto-group" id="groupScenario">
@@ -1401,7 +1425,9 @@ const byId = (id) => BUSINESSES.find((b) => b.id === id);
                       "Associated businesses" menu, grouped flagged/clean
    ===================================================================== */
 const state = {
-  mode: 'tabs',        // 'tabs'|'breadcrumb'|'triage'|'switcher'|'pinboard'|'grouped'
+  /* Variation 1. The lettered modes are earlier explorations, kept behind
+     the panel's disclosure rather than deleted. */
+  mode: 'grouped',     // 'grouped'|'triage'|'tabs'|'breadcrumb'|'switcher'|'pinboard'
   scenario: 'typical', // 'typical' (2 flagged / 14) | 'heavy' (6 flagged / 22)
   currentId: 'main',
   tempTabs: [],        // ids opened from overflow (Variations A, E)
