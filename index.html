@@ -749,9 +749,8 @@ body {
 }
 .triage-row.active .row-chevron { color: var(--color-brand-primary); }
 
-/* ---- Extra toggles stack above the variation toggle ---- */
+/* ---- Scenario toggle sits above the variation toggle ---- */
 .proto-toggle.scenario-toggle { bottom: 68px; }
-.proto-toggle.crumb-toggle { bottom: 116px; }
 
 /* ============ Prototype variation toggle ============ */
 .proto-toggle {
@@ -940,11 +939,6 @@ body {
 </div>
 
 <!-- ============ Prototype variation toggle ============ -->
-<div class="proto-toggle crumb-toggle collapsed" id="crumbToggle">
-  <span class="proto-label">Breadcrumb</span>
-  <button class="active" data-crumb-style="trail">Full trail</button>
-  <button data-crumb-style="back">Back + name</button>
-</div>
 <div class="proto-toggle scenario-toggle collapsed" id="scenarioToggle">
   <span class="proto-label">Scenario</span>
   <button class="active" data-scenario="typical">Typical · 2 flagged / 14</button>
@@ -1276,7 +1270,6 @@ const byId = (id) => BUSINESSES.find((b) => b.id === id);
 const state = {
   mode: 'tabs',        // 'tabs' | 'breadcrumb' | 'triage' | 'switcher' | 'pinboard'
   scenario: 'typical', // 'typical' (2 flagged / 14) | 'heavy' (6 flagged / 22)
-  crumbStyle: 'trail', // B/C only: 'trail' (full path) | 'back' (back + name)
   currentId: 'main',
   tempTabs: [],        // ids opened from overflow (Variations A, E)
   triageOpen: false,   // banner list expanded (Variations C, D, E)
@@ -1326,30 +1319,18 @@ function renderEntityStrip() {
     if (current.primary) { crumb.style.display = 'none'; return; }
     crumb.style.display = 'flex';
     const applicantName = BUSINESSES.find((b) => b.primary).name;
-    crumb.innerHTML = state.crumbStyle === 'back'
-      /* "Associated businesses" was a level that led where the applicant
-         crumb already led, so the trail collapses to a single Back. */
-      ? `<button class="crumb-link" id="crumbBack">
-           <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
-           Back
-         </button>
-         <span class="crumb-current">${current.name}</span>`
-      : `<button class="crumb-link" id="crumbBack">
-           <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
-           ${applicantName}
-         </button>
-         <span class="crumb-sep">/</span>
-         <button class="crumb-link" id="crumbSources">Associated businesses</button>
-         <span class="crumb-sep">/</span>
-         <span class="crumb-current">${current.name}</span>`;
-    /* 'back' returns you to the applicant in the state you left it — the
-       list stays open if you came from it. 'trail' keeps the original
-       split, where only the middle crumb reopened the list. */
-    $('#crumbBack').addEventListener('click', () => {
-      if (state.crumbStyle === 'trail') state.triageOpen = false;
-      selectBusiness('main');
-    });
-    $('#crumbSources')?.addEventListener('click', () => { state.triageOpen = true; selectBusiness('main'); });
+    /* "Associated businesses" was a level that led where the applicant
+       crumb already led, so the trail is applicant / current business. */
+    crumb.innerHTML = `
+      <button class="crumb-link" id="crumbBack">
+        <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
+        ${applicantName}
+      </button>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">${current.name}</span>`;
+    /* returns you to the applicant in the state you left it — the list
+       stays open if that is where you came from */
+    $('#crumbBack').addEventListener('click', () => selectBusiness('main'));
     return;
   }
 
@@ -1360,9 +1341,9 @@ function renderEntityStrip() {
     crumb.innerHTML = `
       <button class="crumb-link" id="crumbBack">
         <span class="material-symbols-rounded" style="font-size:16px">arrow_back</span>
-        ${state.crumbStyle === 'back' ? 'Back' : BUSINESSES.find((b) => b.primary).name}
+        ${BUSINESSES.find((b) => b.primary).name}
       </button>
-      ${state.crumbStyle === 'back' ? '' : '<span class="crumb-sep">/</span>'}
+      <span class="crumb-sep">/</span>
       <span class="crumb-current">${current.name}</span>`;
     $('#crumbBack').addEventListener('click', () => selectBusiness('main'));
     return;
@@ -1759,15 +1740,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawe
    ===================================================================== */
 const protoToggle = $('#protoToggle');
 const scenarioToggle = $('#scenarioToggle');
-const crumbToggle = $('#crumbToggle');
 
-/* A, D and E render no breadcrumb — a visible control that changes nothing
-   is exactly the dead affordance this round of feedback keeps catching. */
-function syncCrumbToggle() {
-  const hasCrumb = state.mode === 'breadcrumb' || state.mode === 'triage';
-  crumbToggle.style.display = hasCrumb ? 'flex' : 'none';
-  if (!hasCrumb) crumbToggle.classList.add('collapsed');
-}
 
 /* Both toggles behave identically: collapsed shows only the active option,
    clicking expands, clicking the active option collapses again. */
@@ -1796,12 +1769,6 @@ function resetNav() {
 wireToggle(protoToggle, 'mode', (mode) => {
   state.mode = mode;
   resetNav();
-  syncCrumbToggle();
-  render();
-});
-
-wireToggle(crumbToggle, 'crumbStyle', (style) => {
-  state.crumbStyle = style;
   render();
 });
 
@@ -1815,7 +1782,6 @@ wireToggle(scenarioToggle, 'scenario', (scenario) => {
 document.addEventListener('click', (e) => {
   if (!protoToggle.contains(e.target)) protoToggle.classList.add('collapsed');
   if (!scenarioToggle.contains(e.target)) scenarioToggle.classList.add('collapsed');
-  if (!crumbToggle.contains(e.target)) crumbToggle.classList.add('collapsed');
 });
 
 /* Top nav segmented tabs — visual switching only (pages not prototyped) */
@@ -1826,7 +1792,6 @@ document.querySelectorAll('.topbar-tab').forEach((tab) =>
   }));
 
 buildBusinesses(state.scenario);
-syncCrumbToggle();
 render();
 </script>
 </body>

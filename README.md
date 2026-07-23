@@ -15,10 +15,7 @@ This prototype explores how to represent those associated businesses in the revi
 
 ## The five navigation variations
 
-Use the toggle at the **bottom-right** of the page to switch. Two toggles stack above it:
-
-- **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
-- **Breadcrumb** — `Full trail` or `Back + name`, for the variations that have a breadcrumb (B and C). It is hidden in A, D and E, which have none.
+Use the toggle at the **bottom-right** of the page to switch. A **Scenario** toggle above it swaps between `Typical · 2 flagged / 14` and `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
 
 | Variation | Pattern | Idea |
 |---|---|---|
@@ -26,11 +23,9 @@ Use the toggle at the **bottom-right** of the page to switch. Two toggles stack 
 | **B · Breadcrumb** | Tabs + drill-in | Flagged businesses stay as tabs; picking a clean business replaces the card content with a breadcrumb back to the applicant. |
 | **C · Triage** | "Other Business Sources" banner | No entity tabs. A banner summarises `2 of 14 flagged` with clickable chips; expanding it shows a triage list (flagged first, with the sections that tripped), and clicking a row drills in with a breadcrumb. |
 
-### Breadcrumb styles (B and C)
+### Breadcrumb (B and C)
 
-`Full trail` is the original: `Blue Oak Technologies LLC / Associated businesses / Marina Holdings LLC`. The middle level is close to redundant — it lands on the applicant, which is where the first crumb already leads. The two differ only in whether the banner list is left open, which is thin justification for a navigation level.
-
-`Back + name` collapses it to `← Back  Marina Holdings LLC` and returns you to the applicant in the state you left it, so nothing the middle crumb did is lost.
+Both read `← Blue Oak Technologies LLC / Pacific Crest Catering LLC` — applicant as a link, current business in bold. C originally carried a third level, "Associated businesses", which landed on the applicant exactly like the first crumb; the two differed only in whether the banner list was left open. Back now returns you to the applicant in the state you left it, so that behaviour survives without a level of its own.
 | **D · Banner switcher** | Banner *is* the navigation | No tab strip, no breadcrumb. The banner persists on every entity and the header rewrites to `Viewing · Marina Holdings LLC`. The applicant is the first row in the list, so leaving and returning are the same gesture, and the list stays open across switches. |
 | **E · Banner + tabs** | Banner replaces the dropdown | Flagged stay pinned as tabs (as in A), but the banner replaces the "+N more" dropdown as the discovery surface. It persists and stays open while you pick, so opening several businesses in a row is one click each. |
 
