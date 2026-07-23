@@ -38,7 +38,7 @@ Open the **Prototype** button at the bottom-right for the control panel.
 
 Four earlier passes are kept behind the panel's disclosure rather than deleted: **A · Temp tabs**, **B · Breadcrumb**, **D · Banner switcher**, **E · Banner + tabs**. D is worth reopening if Variation 2's disappearing banner turns out to be the deciding objection — it is the same triage banner made persistent, with the header rewriting to `Viewing · <business>`.
 
-Other panel controls:
+Other panel controls (**Display** is collapsed by default):
 
 - **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long lists) are reachable.
 - **Owner subtext** — shows or hides the owner names under each business name.

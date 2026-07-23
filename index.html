@@ -860,6 +860,30 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
   margin-bottom: 8px;
 }
 .proto-group .opts { display: flex; flex-direction: column; gap: 4px; }
+/* A collapsible group: the summary is styled as the group label */
+.proto-section > summary {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.proto-section > summary::-webkit-details-marker { display: none; }
+.proto-section > summary::before {
+  content: 'chevron_right';
+  font-family: 'Material Symbols Rounded';
+  font-size: 14px;
+  text-transform: none;
+  letter-spacing: 0;
+  transition: transform 0.15s ease;
+}
+.proto-section[open] > summary::before { transform: rotate(90deg); }
+
 .proto-more { margin-top: 8px; }
 .proto-more summary {
   font: var(--font-secondary);
@@ -1093,8 +1117,8 @@ body.hide-subtext .biz-relation { display: none; }
     </div>
   </div>
 
-  <div class="proto-group">
-    <p>Display</p>
+  <details class="proto-group proto-section">
+    <summary>Display</summary>
     <button class="proto-switch on" id="subtextSwitch">
       Owner subtext
       <span class="track"></span>
@@ -1105,7 +1129,7 @@ body.hide-subtext .biz-relation { display: none; }
       <span class="track"></span>
     </button>
     <p class="proto-hint">Red/amber dot beside flagged businesses. Off by default — the status tag already says it.</p>
-  </div>
+  </details>
 </aside>
 
 <script>
