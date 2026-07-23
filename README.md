@@ -19,7 +19,10 @@ Open the **Prototype** button at the bottom-right for the control panel. It hold
 
 - **Nav variation** — A through F.
 - **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
-- **Owner subtext** — shows or hides the owner names under each business name, across every variation. Pure visibility: the line is always rendered and a class on `<body>` hides it.
+- **Owner subtext** — shows or hides the owner names under each business name, across every variation.
+- **Flag dot** — shows or hides the dot beside flagged businesses. **Off by default**: the status tag already carries the signal. The drawer's section-level flags are a different signal and are unaffected.
+
+Both display switches are pure visibility — the markup is always rendered and a class on `<body>` hides it.
 
 | Variation | Pattern | Idea |
 |---|---|---|
@@ -55,5 +58,7 @@ In every variation, clicking any output row opens the **deep-dive drawer** scope
 - All data is **mock** and generated from one `BUSINESSES` array at the top of the `<script>`; each business derives from a shared 18-section template with per-section overrides, so reshaping scenarios is a few lines.
 - Styling follows the HVOne design tokens (Inter, `#553EF1` interactive accents, 11px overline labels, 4/8pt spacing grid). The top-nav segmented control matches Figma spec `13873:8838`.
 - Business rows carry **owner names** as a subtext, toggleable from the panel. CLEAR does not reliably return *why* two businesses are linked, but it does return who owns them, so the relation line was replaced rather than restored. Flagged rows add a second line — the sections that tripped — which is unaffected by the toggle.
+- The applicant's pill reads **"Main business"**, not its name — the name is already in the page title and the breadcrumb.
+- When the flag dot is on, it takes the business's **own status colour**: amber (`--review-text`) for review, red (`--color-fail`) for fail. It was previously hardcoded to fail-red, so a review-status business showed a red dot beside an amber tag.
 - Each business shows its status **once**. For the selected business that is the `Status:` chip beside "Attempted at"; its row, header and breadcrumb stay bare so the same fact is not repeated three ways.
 - Open product question (deliberately deferred): whether to group associated businesses by owner ("what else does Person B own?") instead of a flat flag-first list. With the subtext on, the repetition is visible — Priya Anand appears on five businesses in the typical scenario.

@@ -752,6 +752,23 @@ body {
 /* ---- Scenario toggle sits above the variation toggle ---- */
 .proto-toggle.scenario-toggle { bottom: 68px; }
 
+/* Inline display beat the hide rule, so the menu dot is styled here */
+.overflow-item .biz-name .flag-dot {
+  display: inline-block;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+/* A flagged business's dot takes its own status colour — a review-status
+   business was showing a fail-red dot beside an amber tag. */
+.flag-dot.dot-review { background: var(--review-text); }
+.flag-dot.dot-fail { background: var(--color-fail); }
+/* Toggled from the panel. Scoped to business dots — the drawer's
+   section-level flags are a different signal and stay put. */
+body.hide-flag-dot .entity-tab .flag-dot,
+body.hide-flag-dot .overflow-item .flag-dot,
+body.hide-flag-dot .triage-chip .flag-dot,
+body.hide-flag-dot .triage-row .flag-dot { display: none; }
+
 /* ---- Variation F: applicant pill | associated businesses menu ---- */
 .strip-divider {
   width: 1px;
@@ -1037,6 +1054,11 @@ body.hide-subtext .biz-relation { display: none; }
       <span class="track"></span>
     </button>
     <p class="proto-hint">Owner names under each business name, in every variation.</p>
+    <button class="proto-switch" id="flagDotSwitch" style="margin-top:8px">
+      Flag dot
+      <span class="track"></span>
+    </button>
+    <p class="proto-hint">Red/amber dot beside flagged businesses. Off by default — the status tag already says it.</p>
   </div>
 </aside>
 
@@ -1456,7 +1478,7 @@ function renderEntityStrip() {
     const flagged = associated.filter((b) => b.flagged);
     const clean = associated.filter((b) => !b.flagged);
     strip.innerHTML = `
-      <button class="entity-tab active" data-biz="${applicant.id}">${applicant.shortName} (Main)</button>
+      <button class="entity-tab active" data-biz="${applicant.id}">Main business</button>
       <span class="strip-divider"></span>
       <button class="overflow-btn assoc-btn" id="overflowBtn">
         Associated businesses
@@ -1475,8 +1497,8 @@ function renderEntityStrip() {
 
   const tabs = pinnedBusinesses().map((b) => `
     <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
-      ${b.flagged ? '<span class="flag-dot"></span>' : ''}
-      ${b.shortName}${b.primary ? ' (Main)' : ''}
+      ${b.flagged ? `<span class="flag-dot dot-${b.status}"></span>` : ''}
+      ${b.primary ? 'Main business' : b.shortName}
     </button>`);
 
   /* Variations A and E both accumulate dismissable temp tabs */
@@ -1485,7 +1507,7 @@ function renderEntityStrip() {
       const b = byId(id);
       return `
         <button class="entity-tab ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
-          ${b.flagged ? '<span class="flag-dot"></span>' : ''}
+          ${b.flagged ? `<span class="flag-dot dot-${b.status}"></span>` : ''}
           ${b.shortName}
           <span class="close-tab" data-close="${b.id}" title="Dismiss">
             <span class="material-symbols-rounded">close</span>
@@ -1533,7 +1555,7 @@ function menuItem(b) {
   return `
     <button class="overflow-item" data-biz="${b.id}">
       <span>
-        <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+        <span class="biz-name">${b.flagged ? `<span class="flag-dot dot-${b.status}"></span>` : ''}${b.name}</span>
         ${ownerLine(b)}
       </span>
       <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
@@ -1685,7 +1707,7 @@ function renderTriage() {
 
   const row = (b) => `
     <button class="triage-row ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
-      ${b.flagged ? '<span class="flag-dot"></span>' : ''}
+      ${b.flagged ? `<span class="flag-dot dot-${b.status}"></span>` : ''}
       <span>
         <span class="biz-name">${b.name}</span>
         ${ownerLine(b)}
@@ -1704,7 +1726,7 @@ function renderTriage() {
 
   const chip = (b, extraClass = '') => `
     <span class="triage-chip ${extraClass} ${b.id === state.currentId ? 'active' : ''}" data-biz="${b.id}">
-      ${b.flagged ? '<span class="flag-dot"></span>' : ''}${b.shortName}
+      ${b.flagged ? `<span class="flag-dot dot-${b.status}"></span>` : ''}${b.shortName}
     </span>`;
 
   const shownChips = flagged.slice(0, MAX_CHIPS);
@@ -1911,10 +1933,15 @@ wireGroup('#groupScenario', 'scenario', (scenario) => {
 });
 
 /* Pure visibility — no re-render, no state the renderers have to read */
-$('#subtextSwitch').addEventListener('click', (e) => {
-  const on = e.currentTarget.classList.toggle('on');
-  document.body.classList.toggle('hide-subtext', !on);
-});
+function wireSwitch(id, hideClass) {
+  $(id).addEventListener('click', (e) => {
+    const on = e.currentTarget.classList.toggle('on');
+    document.body.classList.toggle(hideClass, !on);
+  });
+}
+wireSwitch('#subtextSwitch', 'hide-subtext');
+wireSwitch('#flagDotSwitch', 'hide-flag-dot');
+document.body.classList.add('hide-flag-dot'); // off by default
 
 /* Top nav segmented tabs — visual switching only (pages not prototyped) */
 document.querySelectorAll('.topbar-tab').forEach((tab) =>
