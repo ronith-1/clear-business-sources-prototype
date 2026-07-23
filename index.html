@@ -289,6 +289,12 @@ body {
 .overflow-item:hover { background: var(--color-surface-z2); }
 .overflow-item .biz-name { font: var(--font-body2); color: var(--color-text-primary); }
 .overflow-item .result { font: var(--font-body2-medium); flex-shrink: 0; }
+.overflow-item .item-chevron {
+  font-size: 18px;
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  margin-left: -4px;
+}
 
 /* Breadcrumb bar (Variation B) */
 .breadcrumb-bar {
@@ -1673,6 +1679,9 @@ function menuItem(b) {
         ${ownerLine(b)}
       </span>
       <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
+      ${b.flagged
+        ? '<span class="material-symbols-rounded item-chevron">chevron_right</span>'
+        : ''}
     </button>`;
 }
 
