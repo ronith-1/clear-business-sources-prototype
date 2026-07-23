@@ -752,66 +752,109 @@ body {
 /* ---- Scenario toggle sits above the variation toggle ---- */
 .proto-toggle.scenario-toggle { bottom: 68px; }
 
-/* ============ Prototype variation toggle ============ */
-.proto-toggle {
+/* ============ Prototype control panel ============ */
+.panel-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  bottom: 20px; right: 20px;
+  z-index: 61;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: none;
   background: var(--color-text-title);
+  color: #FFFFFF;
+  font: var(--font-body2-medium);
   border-radius: var(--radius-md);
-  padding: 6px;
+  padding: 10px 14px;
+  cursor: pointer;
   box-shadow: var(--shadow-dropdown);
-  max-width: calc(100vw - 40px);
 }
-.proto-toggle .proto-label {
+.panel-btn .material-symbols-rounded { font-size: 18px; }
+
+.proto-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 280px;
+  height: 100vh;
+  z-index: 62;
+  background: var(--color-surface-white);
+  border-left: 1px solid var(--color-border);
+  box-shadow: var(--shadow-dropdown);
+  padding: 20px;
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+.proto-panel.open { transform: translateX(0); }
+.proto-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px;
+}
+.proto-panel-header h4 { font: var(--font-body1-heavy); color: var(--color-text-primary); }
+.proto-panel-header button {
+  border: none; background: transparent; cursor: pointer;
+  color: var(--color-text-secondary); display: inline-flex; padding: 4px;
+}
+.proto-group { margin-bottom: 24px; }
+.proto-group > p {
   font: var(--font-overline);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--color-text-tertiary);
-  padding: 0 6px 0 8px;
-  white-space: nowrap;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
 }
-.proto-toggle button {
-  border: none;
-  background: transparent;
+.proto-group .opts { display: flex; flex-direction: column; gap: 4px; }
+.proto-group .opts button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-white);
   font: var(--font-body2);
-  color: var(--color-text-tertiary);
-  padding: 6px 10px;
+  color: var(--color-text-secondary);
   border-radius: var(--radius-sm);
+  padding: 8px 10px;
   cursor: pointer;
-  white-space: nowrap;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
-.proto-toggle button.active {
-  background: var(--color-brand-primary);
-  color: #FFFFFF;
+.proto-group .opts button:hover { background: var(--color-surface-z2); }
+.proto-group .opts button.active {
+  border-color: var(--color-brand-primary);
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
   font: var(--font-body2-medium);
 }
-.proto-toggle button.active::after {
-  content: 'expand_less';
-  font-family: 'Material Symbols Rounded';
-  font-size: 16px;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-  line-height: 1;
-  opacity: 0.85;
-  transition: transform 0.15s ease;
+/* simple on/off row */
+.proto-switch {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; width: 100%;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-white);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  cursor: pointer;
 }
-.proto-toggle:not(.collapsed) button.active::after {
-  transform: rotate(180deg);
+.proto-switch .track {
+  width: 34px; height: 18px; border-radius: 9px; flex-shrink: 0;
+  background: var(--color-border);
+  position: relative; transition: background 0.15s ease;
 }
-.proto-toggle.collapsed .proto-label,
-.proto-toggle.collapsed button:not(.active) {
-  display: none;
+.proto-switch .track::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #FFFFFF; transition: transform 0.15s ease;
 }
-.proto-toggle.collapsed {
-  padding: 4px;
+.proto-switch.on .track { background: var(--color-brand-primary); }
+.proto-switch.on .track::after { transform: translateX(16px); }
+.proto-hint {
+  font: var(--font-secondary);
+  color: var(--color-text-tertiary);
+  text-transform: none;
+  letter-spacing: 0;
+  margin-top: 6px;
 }
+
+/* Owner subtext under a business name — toggled globally from the panel */
+.biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
+body.hide-subtext .biz-relation { display: none; }
 </style>
 </head>
 <body>
@@ -938,20 +981,44 @@ body {
   </div>
 </div>
 
-<!-- ============ Prototype variation toggle ============ -->
-<div class="proto-toggle scenario-toggle collapsed" id="scenarioToggle">
-  <span class="proto-label">Scenario</span>
-  <button class="active" data-scenario="typical">Typical · 2 flagged / 14</button>
-  <button data-scenario="heavy">Heavy · 6 flagged / 22</button>
-</div>
-<div class="proto-toggle collapsed" id="protoToggle">
-  <span class="proto-label">Nav variation</span>
-  <button class="active" data-mode="tabs">A · Temp tabs</button>
-  <button data-mode="breadcrumb">B · Breadcrumb</button>
-  <button data-mode="triage">C · Triage</button>
-  <button data-mode="switcher">D · Banner switcher</button>
-  <button data-mode="pinboard">E · Banner + tabs</button>
-</div>
+<!-- ============ Prototype control panel ============ -->
+<button class="panel-btn" id="panelBtn">
+  <span class="material-symbols-rounded">tune</span> Prototype
+</button>
+<aside class="proto-panel" id="protoPanel">
+  <div class="proto-panel-header">
+    <h4>Prototype controls</h4>
+    <button id="panelClose" aria-label="Close"><span class="material-symbols-rounded">close</span></button>
+  </div>
+
+  <div class="proto-group" id="groupMode">
+    <p>Nav variation</p>
+    <div class="opts">
+      <button class="active" data-mode="tabs">A · Temp tabs</button>
+      <button data-mode="breadcrumb">B · Breadcrumb</button>
+      <button data-mode="triage">C · Triage</button>
+      <button data-mode="switcher">D · Banner switcher</button>
+      <button data-mode="pinboard">E · Banner + tabs</button>
+    </div>
+  </div>
+
+  <div class="proto-group" id="groupScenario">
+    <p>Scenario</p>
+    <div class="opts">
+      <button class="active" data-scenario="typical">Typical · 2 flagged / 14</button>
+      <button data-scenario="heavy">Heavy · 6 flagged / 22</button>
+    </div>
+  </div>
+
+  <div class="proto-group">
+    <p>Display</p>
+    <button class="proto-switch on" id="subtextSwitch">
+      Owner subtext
+      <span class="track"></span>
+    </button>
+    <p class="proto-hint">Owner names under each business name, in every variation.</p>
+  </div>
+</aside>
 
 <script>
 /* =====================================================================
@@ -1299,6 +1366,11 @@ function overflowBusinesses() {
 function isOnScreen(b) {
   return b.primary || b.flagged || state.tempTabs.includes(b.id);
 }
+/* Owner names under the business name. Always rendered; the panel's
+   Owner subtext switch hides it with a class on <body>. */
+function ownerLine(b) {
+  return `<div class="biz-relation">${b.owners && b.owners.length ? b.owners.join(', ') : '—'}</div>`;
+}
 
 function renderEntityStrip() {
   const strip = $('#entityStrip');
@@ -1392,7 +1464,10 @@ function renderEntityStrip() {
           <p class="menu-header">${state.mode === 'tabs' ? 'Not yet open' : 'All associated businesses'}</p>
           ${menuItems.map((b) => `
             <button class="overflow-item" data-biz="${b.id}">
-              <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+              <span>
+                <span class="biz-name">${b.flagged ? '<span class="flag-dot" style="display:inline-block;margin-right:6px"></span>' : ''}${b.name}</span>
+                ${ownerLine(b)}
+              </span>
               <span class="result ${resultClass[b.status]}">${statusLabel[b.status]}</span>
             </button>`).join('')}
         </div>`;
@@ -1556,6 +1631,7 @@ function renderTriage() {
       ${b.flagged ? '<span class="flag-dot"></span>' : ''}
       <span>
         <span class="biz-name">${b.name}</span>
+        ${ownerLine(b)}
         ${b.flagged ? `<div class="flagged-sections">${flaggedSectionTitles(b)}</div>` : ''}
       </span>
       ${b.id === state.currentId
@@ -1738,26 +1814,9 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawe
 /* =====================================================================
    VARIATION TOGGLE
    ===================================================================== */
-const protoToggle = $('#protoToggle');
-const scenarioToggle = $('#scenarioToggle');
-
-
-/* Both toggles behave identically: collapsed shows only the active option,
-   clicking expands, clicking the active option collapses again. */
-function wireToggle(el, key, apply) {
-  el.querySelectorAll('button').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const value = btn.dataset[key];
-      if (el.classList.contains('collapsed')) { el.classList.remove('collapsed'); return; }
-      if (value === state[key]) { el.classList.add('collapsed'); return; }
-      apply(value);
-      el.querySelectorAll('button').forEach((b) =>
-        b.classList.toggle('active', b.dataset[key] === value));
-      el.classList.add('collapsed');
-    });
-  });
-}
+const protoPanel = $('#protoPanel');
+$('#panelBtn').addEventListener('click', () => protoPanel.classList.add('open'));
+$('#panelClose').addEventListener('click', () => protoPanel.classList.remove('open'));
 
 function resetNav() {
   state.currentId = 'main';
@@ -1766,22 +1825,38 @@ function resetNav() {
   state.inputTab = 'Owner 1';
 }
 
-wireToggle(protoToggle, 'mode', (mode) => {
+/* Each option group is a single-select list of buttons keyed by a data
+   attribute matching its state field. */
+function wireGroup(groupId, key, apply) {
+  const group = $(groupId);
+  group.querySelectorAll('button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const value = btn.dataset[key];
+      if (value === state[key]) return;
+      apply(value);
+      group.querySelectorAll('button').forEach((b) =>
+        b.classList.toggle('active', b.dataset[key] === value));
+    });
+  });
+}
+
+wireGroup('#groupMode', 'mode', (mode) => {
   state.mode = mode;
   resetNav();
   render();
 });
 
-wireToggle(scenarioToggle, 'scenario', (scenario) => {
+wireGroup('#groupScenario', 'scenario', (scenario) => {
   state.scenario = scenario;
   buildBusinesses(scenario);
   resetNav();
   render();
 });
 
-document.addEventListener('click', (e) => {
-  if (!protoToggle.contains(e.target)) protoToggle.classList.add('collapsed');
-  if (!scenarioToggle.contains(e.target)) scenarioToggle.classList.add('collapsed');
+/* Pure visibility — no re-render, no state the renderers have to read */
+$('#subtextSwitch').addEventListener('click', (e) => {
+  const on = e.currentTarget.classList.toggle('on');
+  document.body.classList.toggle('hide-subtext', !on);
 });
 
 /* Top nav segmented tabs — visual switching only (pages not prototyped) */

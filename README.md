@@ -15,7 +15,11 @@ This prototype explores how to represent those associated businesses in the revi
 
 ## The five navigation variations
 
-Use the toggle at the **bottom-right** of the page to switch. A **Scenario** toggle above it swaps between `Typical · 2 flagged / 14` and `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
+Open the **Prototype** button at the bottom-right for the control panel. It holds everything:
+
+- **Nav variation** — A through E.
+- **Scenario** — `Typical · 2 flagged / 14` or `Heavy · 6 flagged / 22`, so the crowded states (chip overflow, long tab strips, scrolling lists) are reachable.
+- **Owner subtext** — shows or hides the owner names under each business name, across every variation. Pure visibility: the line is always rendered and a class on `<body>` hides it.
 
 | Variation | Pattern | Idea |
 |---|---|---|
@@ -36,7 +40,7 @@ In every variation, clicking any output row opens the **deep-dive drawer** scope
 ## Interactions to try
 
 1. Click a flagged tab (Marina Holdings / Coastal Freight) — the whole card swaps to that business's inputs and outputs.
-2. Open "+12 more businesses" (A/B) or the banner (C/D/E) — the concealed clean businesses, each with its outcome.
+2. Open "+12 more businesses" (A/B) or the banner (C/D/E) — the concealed clean businesses, each with its owners + outcome.
 3. In A, open several businesses in a row — each one leaves the menu as it opens. Open all of them and "+0 more" becomes **Collapse all**.
 4. In D, expand the banner and switch between three businesses without it ever closing.
 5. Switch the scenario to **Heavy** and look at C/D/E — the chips cap at three plus a `+N` that opens the list rather than navigating.
@@ -47,6 +51,6 @@ In every variation, clicking any output row opens the **deep-dive drawer** scope
 - Single self-contained file (`index.html`) — no build step, no dependencies beyond Google Fonts. Open locally or serve statically.
 - All data is **mock** and generated from one `BUSINESSES` array at the top of the `<script>`; each business derives from a shared 18-section template with per-section overrides, so reshaping scenarios is a few lines.
 - Styling follows the HVOne design tokens (Inter, `#553EF1` interactive accents, 11px overline labels, 4/8pt spacing grid). The top-nav segmented control matches Figma spec `13873:8838`.
-- Business rows carry **no subtext** — no relation, no owner names. CLEAR does not reliably return *why* two businesses are linked, and owner names were tried and dropped: the name plus its outcome is the whole row. Flagged rows are the one exception, and what they add is the sections that tripped, not an association.
+- Business rows carry **owner names** as a subtext, toggleable from the panel. CLEAR does not reliably return *why* two businesses are linked, but it does return who owns them, so the relation line was replaced rather than restored. Flagged rows add a second line — the sections that tripped — which is unaffected by the toggle.
 - Each business shows its status **once**. For the selected business that is the `Status:` chip beside "Attempted at"; its row, header and breadcrumb stay bare so the same fact is not repeated three ways.
-- Open product question (deliberately deferred): whether to group associated businesses by owner ("what else does Person B own?") instead of a flat flag-first list — ownership is carried in the data but is not surfaced anywhere in the UI.
+- Open product question (deliberately deferred): whether to group associated businesses by owner ("what else does Person B own?") instead of a flat flag-first list. With the subtext on, the repetition is visible — Priya Anand appears on five businesses in the typical scenario.
