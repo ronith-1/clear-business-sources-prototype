@@ -1191,17 +1191,47 @@ function makeSections(overrides = {}) {
   });
 }
 
-function makeInputs(name, address, ein) {
-  return {
+/* Owners are held once and referenced by name, so the same person carries
+   the same details across every business they appear on. */
+const OWNERS = {
+  'Daniel Reyes':   { dob: '1981-03-22', ssn: 'XXX-XX-4471', address: '18 Fairmount Street', city: 'San Francisco', state: 'California', zipcode: '94131' },
+  'Priya Anand':    { dob: '1976-11-04', ssn: 'XXX-XX-8820', address: '2405 Broadway',       city: 'Oakland',       state: 'California', zipcode: '94612' },
+  'Grace Okonkwo':  { dob: '1985-06-19', ssn: 'XXX-XX-3157', address: '910 Steiner Street',  city: 'San Francisco', state: 'California', zipcode: '94117' },
+  'Marcus Webb':    { dob: '1969-02-27', ssn: 'XXX-XX-6602', address: '77 Jack London Sq',   city: 'Oakland',       state: 'California', zipcode: '94607' },
+  'Tomas Ferreira': { dob: '1990-09-13', ssn: 'XXX-XX-2048', address: '1420 Alameda Ave',    city: 'Alameda',       state: 'California', zipcode: '94501' },
+  'Ellis Nakamura': { dob: '1983-12-01', ssn: 'XXX-XX-7734', address: '333 Bush Street',     city: 'San Francisco', state: 'California', zipcode: '94104' },
+  'Ruth Vasquez':   { dob: '1972-07-08', ssn: 'XXX-XX-5519', address: '1201 Park Street',    city: 'Alameda',       state: 'California', zipcode: '94501' },
+  'Amara Diallo':   { dob: '1988-04-30', ssn: 'XXX-XX-9163', address: '55 Vallejo Street',   city: 'San Francisco', state: 'California', zipcode: '94111' },
+};
+
+const money = (n) => '$' + Number(n).toLocaleString('en-US');
+
+/* makeInputs(business, ownerNames) — one Business tab plus one tab per
+   owner the business actually has, rather than three fixed owner slots. */
+function makeInputs(biz, ownerNames = []) {
+  const inputs = {
     'Business': [
-      ['Business Name', name],
-      ['Business Address', address || '-'],
-      ['EIN', ein || '-'],
+      ['Business Name', biz.name],
+      ['Address', biz.address],
+      ['City', biz.city],
+      ['State', biz.state],
+      ['Zipcode', biz.zipcode],
+      ['Annual Revenue', money(biz.annualRevenue)],
     ],
-    'Owner 1': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
-    'Owner 2': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
-    'Owner 3': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
   };
+  ownerNames.forEach((n, i) => {
+    const o = OWNERS[n] || {};
+    inputs[`Owner ${i + 1}`] = [
+      ['Owner Name', n],
+      ['Date of Birth', o.dob || '-'],
+      ['SSN', o.ssn || '-'],
+      ['Address', o.address || '-'],
+      ['City', o.city || '-'],
+      ['State', o.state || '-'],
+      ['Zipcode', o.zipcode || '-'],
+    ];
+  });
+  return inputs;
 }
 
 const CRIMINAL_ROWS = {
@@ -1226,20 +1256,9 @@ const BASE_BUSINESSES = [
     relation: 'Applicant',
     owners: ['Daniel Reyes', 'Priya Anand'],
     primary: true,
-    inputs: {
-      'Business': [
-        ['Business Name', 'Blue Oak Technologies LLC'],
-        ['Business Address', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109'],
-        ['EIN', '84-2245108'],
-      ],
-      'Owner 1': [
-        ['Business Name', 'Blue Oak Technologies LLC'],
-        ['Business Address', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109'],
-        ['Owner Name', '-'],
-      ],
-      'Owner 2': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
-      'Owner 3': [['Owner Name', '-'], ['Owner Address', '-'], ['SSN', '-']],
-    },
+    inputs: makeInputs(
+      { name: 'Blue Oak Technologies LLC', address: '1458 Pacific Avenue, Suite 301', city: 'San Francisco', state: 'California', zipcode: '94109', annualRevenue: 2480500 },
+      ['Daniel Reyes', 'Priya Anand']),
     files: [
       'Bank 6862 - Dec 2024 - 2025-01-31 21_15_14.xml',
       'Bank 6862 - Nov 2024 - 2025-01-31 21_15_13.Xml',
@@ -1264,7 +1283,9 @@ const BASE_BUSINESSES = [
     shortName: 'Marina Holdings',
     relation: 'Owner 2 · 40% stake',
     owners: ['Priya Anand', 'Grace Okonkwo'],
-    inputs: makeInputs('Marina Holdings LLC', '88 King Street, San Francisco, CA 94107', '82-5567190'),
+    inputs: makeInputs(
+      { name: 'Marina Holdings LLC', address: '88 King Street', city: 'San Francisco', state: 'California', zipcode: '94107', annualRevenue: 1120400 },
+      ['Priya Anand', 'Grace Okonkwo']),
     sections: makeSections({
       criminal: { status: 'review', flag: true,
         checks: [['Felony', 'Yes'], ['Trust Crime', 'Yes'], ['Active supervision or Incarceration', 'No'],
@@ -1285,7 +1306,9 @@ const BASE_BUSINESSES = [
     shortName: 'Coastal Freight',
     relation: 'Frequent transactions',
     owners: ['Marcus Webb'],
-    inputs: makeInputs('Coastal Freight Partners LLC', '410 Harbor Blvd, Oakland, CA 94607', '87-1104482'),
+    inputs: makeInputs(
+      { name: 'Coastal Freight Partners LLC', address: '410 Harbor Blvd', city: 'Oakland', state: 'California', zipcode: '94607', annualRevenue: 3640900 },
+      ['Marcus Webb']),
     sections: makeSections({
       bankruptcy: { status: 'review', flag: true,
         checks: [['Open bankruptcy', 'Yes'], ['Bankruptcy within 5 years', 'Yes'], ['Multiple filings', 'No']],
@@ -1304,23 +1327,24 @@ const BASE_BUSINESSES = [
     }),
   },
   /* --- clean associated businesses --- */
+  /* [id, name, relation, owners, street, city, zip, annual revenue] */
   ...[
-    ['pacific-crest', 'Pacific Crest Catering LLC', 'Owner 1', ['Daniel Reyes']],
-    ['ridgeline', 'Ridgeline Property Group', 'Owner 2', ['Priya Anand', 'Tomas Ferreira']],
-    ['bayline', 'Bayline Logistics Inc', 'Frequent transactions', ['Marcus Webb']],
-    ['sundial', 'Sundial Coffee Roasters LLC', 'Owner 2', ['Priya Anand']],
-    ['northgate', 'Northgate Auto Repair', 'Unknown relation', ['Ellis Nakamura']],
-    ['emerald-bay', 'Emerald Bay Consulting', 'Owner 1', ['Daniel Reyes', 'Ruth Vasquez']],
-    ['harbor-point', 'Harbor Point Realty LLC', 'Owner 2', ['Priya Anand']],
-    ['twin-peaks', 'Twin Peaks Web Services', 'Frequent transactions', ['Ellis Nakamura']],
-    ['golden-gate', 'Golden Gate Textiles', 'Unknown relation', ['Amara Diallo']],
-    ['cypress-lane', 'Cypress Lane Bakery', 'Owner 2', ['Priya Anand', 'Grace Okonkwo']],
-    ['redwood', 'Redwood Analytics LLC', 'Owner 1', ['Daniel Reyes']],
-    ['mission-bay', 'Mission Bay Imports', 'Frequent transactions', ['Tomas Ferreira']],
-  ].map(([id, name, relation, owners]) => ({
+    ['pacific-crest', 'Pacific Crest Catering LLC', 'Owner 1', ['Daniel Reyes'], '2210 Chestnut Street', 'San Francisco', '94123', 640300],
+    ['ridgeline', 'Ridgeline Property Group', 'Owner 2', ['Priya Anand', 'Tomas Ferreira'], '77 Grand Ave', 'Oakland', '94612', 1875000],
+    ['bayline', 'Bayline Logistics Inc', 'Frequent transactions', ['Marcus Webb'], '1900 Middle Harbor Rd', 'Oakland', '94607', 2960100],
+    ['sundial', 'Sundial Coffee Roasters LLC', 'Owner 2', ['Priya Anand'], '512 Valencia Street', 'San Francisco', '94110', 415800],
+    ['northgate', 'Northgate Auto Repair', 'Unknown relation', ['Ellis Nakamura'], '3401 San Pablo Ave', 'Berkeley', '94702', 388200],
+    ['emerald-bay', 'Emerald Bay Consulting', 'Owner 1', ['Daniel Reyes', 'Ruth Vasquez'], '101 Montgomery Street', 'San Francisco', '94104', 1240600],
+    ['harbor-point', 'Harbor Point Realty LLC', 'Owner 2', ['Priya Anand'], '250 Bay Street', 'San Francisco', '94133', 2105700],
+    ['twin-peaks', 'Twin Peaks Web Services', 'Frequent transactions', ['Ellis Nakamura'], '1355 Market Street', 'San Francisco', '94103', 730900],
+    ['golden-gate', 'Golden Gate Textiles', 'Unknown relation', ['Amara Diallo'], '600 Illinois Street', 'San Francisco', '94107', 1580200],
+    ['cypress-lane', 'Cypress Lane Bakery', 'Owner 2', ['Priya Anand', 'Grace Okonkwo'], '4001 Judah Street', 'San Francisco', '94122', 296400],
+    ['redwood', 'Redwood Analytics LLC', 'Owner 1', ['Daniel Reyes'], '1 Kearny Street', 'San Francisco', '94108', 985100],
+    ['mission-bay', 'Mission Bay Imports', 'Frequent transactions', ['Tomas Ferreira'], '1650 Third Street', 'San Francisco', '94158', 3210800],
+  ].map(([id, name, relation, owners, address, city, zipcode, annualRevenue]) => ({
     id, name, relation, owners,
     shortName: name.replace(/ (LLC|Inc|Group)$/, ''),
-    inputs: makeInputs(name),
+    inputs: makeInputs({ name, address, city, state: 'California', zipcode, annualRevenue }, owners),
     sections: makeSections(),
   })),
 ];
@@ -1336,7 +1360,9 @@ const HEAVY_FLAGGED = [
     shortName: 'Stonebridge Equipment',
     relation: 'Owner 1 · 25% stake',
     owners: ['Daniel Reyes', 'Ruth Vasquez'],
-    inputs: makeInputs('Stonebridge Equipment Leasing LLC', '2200 Alameda Ave, Oakland, CA 94601', '85-3390274'),
+    inputs: makeInputs(
+      { name: 'Stonebridge Equipment Leasing LLC', address: '2200 Alameda Ave', city: 'Oakland', state: 'California', zipcode: '94601', annualRevenue: 4120300 },
+      ['Daniel Reyes', 'Ruth Vasquez']),
     sections: makeSections({
       judgements: { status: 'review', flag: true,
         checks: [['Open judgements', 'Yes'], ['Recent judgements', 'Yes'], ['High value judgements', 'Yes']],
@@ -1357,7 +1383,9 @@ const HEAVY_FLAGGED = [
     shortName: 'Alder Creek Farms',
     relation: 'Frequent transactions',
     owners: ['Amara Diallo'],
-    inputs: makeInputs('Alder Creek Farms Inc', '7714 County Road 12, Modesto, CA 95354', '86-2218840'),
+    inputs: makeInputs(
+      { name: 'Alder Creek Farms Inc', address: '7714 County Road 12', city: 'Modesto', state: 'California', zipcode: '95354', annualRevenue: 5340700 },
+      ['Amara Diallo']),
     sections: makeSections({
       sanctions: { status: 'fail', flag: true,
         checks: [['OFAC match', 'No'], ['Watchlist match', 'Yes'], ['PEP match', 'Yes']],
@@ -1374,7 +1402,9 @@ const HEAVY_FLAGGED = [
     shortName: 'Westfield Storage',
     relation: 'Owner 3 · 15% stake',
     owners: ['Ellis Nakamura', 'Tomas Ferreira'],
-    inputs: makeInputs('Westfield Storage Group', '3390 Industrial Way, San Jose, CA 95112', '83-7745023'),
+    inputs: makeInputs(
+      { name: 'Westfield Storage Group', address: '3390 Industrial Way', city: 'San Jose', state: 'California', zipcode: '95112', annualRevenue: 1690500 },
+      ['Ellis Nakamura', 'Tomas Ferreira']),
     sections: makeSections({
       licenses: { status: 'review', flag: true,
         checks: [['Expired business license', 'Yes'], ['Revoked license', 'No']],
@@ -1392,7 +1422,9 @@ const HEAVY_FLAGGED = [
     shortName: 'Kestrel Marine',
     relation: 'Unknown relation',
     owners: ['Grace Okonkwo'],
-    inputs: makeInputs('Kestrel Marine Supply LLC', '55 Embarcadero Cove, Oakland, CA 94606', '88-0093317'),
+    inputs: makeInputs(
+      { name: 'Kestrel Marine Supply LLC', address: '55 Embarcadero Cove', city: 'Oakland', state: 'California', zipcode: '94606', annualRevenue: 2245900 },
+      ['Grace Okonkwo']),
     sections: makeSections({
       liens: { status: 'review', flag: true,
         checks: [['Active tax liens', 'Yes'], ['Recent lien filings', 'Yes'], ['Released liens', 'Yes']],
@@ -1410,14 +1442,14 @@ const HEAVY_FLAGGED = [
 ];
 
 const HEAVY_CLEAN = [
-  ['seacliff', 'Seacliff Interiors LLC', 'Owner 1', ['Daniel Reyes']],
-  ['lantern-bay', 'Lantern Bay Media Inc', 'Frequent transactions', ['Amara Diallo']],
-  ['foxglove', 'Foxglove Pharmacy', 'Owner 3', ['Ellis Nakamura']],
-  ['crestview', 'Crestview Tooling LLC', 'Unknown relation', ['Ruth Vasquez', 'Marcus Webb']],
-].map(([id, name, relation, owners]) => ({
+  ['seacliff', 'Seacliff Interiors LLC', 'Owner 1', ['Daniel Reyes'], '2800 Clement Street', 'San Francisco', '94121', 512000],
+  ['lantern-bay', 'Lantern Bay Media Inc', 'Frequent transactions', ['Amara Diallo'], '340 Brannan Street', 'San Francisco', '94107', 1435600],
+  ['foxglove', 'Foxglove Pharmacy', 'Owner 3', ['Ellis Nakamura'], '1200 Irving Street', 'San Francisco', '94122', 678400],
+  ['crestview', 'Crestview Tooling LLC', 'Unknown relation', ['Ruth Vasquez', 'Marcus Webb'], '480 S Milpitas Blvd', 'Milpitas', '95035', 1902300],
+].map(([id, name, relation, owners, address, city, zipcode, annualRevenue]) => ({
   id, name, relation, owners,
   shortName: name.replace(/ (LLC|Inc|Group)$/, ''),
-  inputs: makeInputs(name),
+  inputs: makeInputs({ name, address, city, state: 'California', zipcode, annualRevenue }, owners),
   sections: makeSections(),
 }));
 
@@ -1714,6 +1746,8 @@ function renderAttemptMeta() {
 function renderInputs() {
   const b = byId(state.currentId);
   const tabs = Object.keys(b.inputs);
+  /* owner counts vary per business, so a remembered tab may not exist */
+  if (!tabs.includes(state.inputTab)) state.inputTab = tabs[0];
   const tabsEl = $('#inputTabs');
   tabsEl.innerHTML = tabs.map((t) => `
     <button class="input-tab ${t === state.inputTab ? 'active' : ''}" data-tab="${t}">

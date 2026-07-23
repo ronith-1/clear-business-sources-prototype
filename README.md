@@ -59,6 +59,8 @@ In every variation, clicking any output row opens the **deep-dive drawer** scope
 ## Notes
 
 - Single self-contained file (`index.html`) — no build step, no dependencies beyond Google Fonts. Open locally or serve statically.
+- Inputs follow the real payload shape: a business carries `name / address / city / state / zipcode / annualRevenue`, an owner carries `name / dob / ssn / address / city / state / zipcode`. Owner tabs are generated from the owners a business actually has — one to two here — rather than three fixed slots, so there are no empty rows.
+- Owners live in one `OWNERS` registry keyed by name, so the same person carries identical details everywhere they appear. Priya Anand is on five businesses in the typical scenario, with the same DOB and SSN on each.
 - All data is **mock** and generated from one `BUSINESSES` array at the top of the `<script>`; each business derives from a shared 18-section template with per-section overrides, so reshaping scenarios is a few lines.
 - Styling follows the HVOne design tokens (Inter, `#553EF1` interactive accents, 11px overline labels, 4/8pt spacing grid). The top-nav segmented control matches Figma spec `13873:8838`.
 - Business rows carry **owner names** as a subtext, toggleable from the panel. CLEAR does not reliably return *why* two businesses are linked, but it does return who owns them, so the relation line was replaced rather than restored. Flagged rows add a second line — the sections that tripped — which is unaffected by the toggle.
