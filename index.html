@@ -302,6 +302,13 @@ body {
 }
 
 /* Breadcrumb bar (Variation B) */
+@keyframes drillFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+.drill-fade { animation: drillFade 0.22s ease-out; }
+@media (prefers-reduced-motion: reduce) { .drill-fade { animation: none; } }
+
 .breadcrumb-bar {
   display: flex;
   align-items: center;
@@ -1745,6 +1752,20 @@ function selectBusiness(id) {
     state.tempTabs.push(id);
   }
   render();
+  /* Drilling into an associated business swaps the whole card. A short
+     fade eases that jump — and the breadcrumb replacing the strip. */
+  if (!b.primary) fadeInCard();
+}
+
+/* Restart the fade by removing the class, forcing reflow, re-adding it */
+function fadeInCard() {
+  ['#breadcrumbBar', '.module-body'].forEach((sel) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    el.classList.remove('drill-fade');
+    void el.offsetWidth;
+    el.classList.add('drill-fade');
+  });
 }
 
 /* =====================================================================
