@@ -3359,16 +3359,29 @@ function renderDrawerContent() {
   const disarmAll = (except) => document.querySelectorAll('.ev-cols.focus-armed')
     .forEach(t => { if (t !== except) t.classList.remove('focus-armed'); });
 
+  const scheduleArm = (table) => {
+    clearTimeout(armTimer);
+    if (!table.classList.contains('focus-armed'))
+      armTimer = setTimeout(() => table.classList.add('focus-armed'), focusDelayMs);
+  };
+
   drawerContentEl.addEventListener('mouseover', e => {
     const row = e.target.closest('.ev-cols tbody tr:not(.failed)');
     const table = e.target.closest('.ev-cols');
     if (!row || !table || row === hoverRow) return;
     hoverRow = row;
     clearTimeout(disarmTimer);
-    clearTimeout(armTimer);
     disarmAll(table);
-    if (!table.classList.contains('focus-armed'))
-      armTimer = setTimeout(() => table.classList.add('focus-armed'), focusDelayMs);
+    scheduleArm(table);
+  });
+
+  /* The countdown measures a *stationary* hover: any pointer movement
+     inside the row restarts it, so it only elapses once the mouse has
+     actually come to rest. */
+  drawerContentEl.addEventListener('mousemove', e => {
+    if (!hoverRow || !hoverRow.contains(e.target)) return;
+    const table = hoverRow.closest('.ev-cols');
+    if (table && !table.classList.contains('focus-armed')) scheduleArm(table);
   });
 
   drawerContentEl.addEventListener('mouseout', e => {
