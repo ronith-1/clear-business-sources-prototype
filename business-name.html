@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Name — Evidence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+:root {
+  --font-family: 'Inter', sans-serif;
+  --font-h2: 600 20px/28px var(--font-family);
+  --font-body1: 400 14px/20px var(--font-family);
+  --font-body2: 400 13px/18px var(--font-family);
+  --font-body2-medium: 500 13px/18px var(--font-family);
+  --font-overline: 600 11px/16px var(--font-family);
+  --color-text-title: #171C26;
+  --color-text-primary: #333333;
+  --color-text-secondary: #616161;
+  --color-text-tertiary: #A2A0A0;
+  --color-border: #E6E6E6;
+  --color-surface-white: #FFFFFF;
+  --color-surface-z1: #F5F6F8;
+  --color-surface-table-header: #F2F2F6;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --pass-bg: #E6F9F3;
+  --pass-badge-text: #006644;
+  --review-bg: #FFF5DC;
+  --review-text: #9A4524;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font: var(--font-body1);
+  background: #F5F6F8;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 24px;
+}
+.card {
+  background: var(--color-surface-white);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(23, 28, 38, 0.10), 0 2px 8px rgba(23, 28, 38, 0.06);
+  padding: 24px;
+  width: 100%;
+  max-width: 1240px;
+}
+.section-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+}
+.section-header .material-symbols-rounded { color: var(--color-text-primary); font-size: 22px; }
+.section-header h3 { font: var(--font-h2); color: var(--color-text-title); }
+.section-header .check-count { font: var(--font-body1); color: var(--color-text-secondary); }
+
+.detail-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+.detail-table { border-collapse: collapse; width: 100%; min-width: 720px; table-layout: fixed; }
+.detail-table th {
+  font: var(--font-overline);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-table-header);
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+.detail-table td {
+  font: var(--font-body2);
+  color: var(--color-text-primary);
+  padding: 14px 16px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.detail-table th:nth-child(1) { width: 120px; }
+.detail-table th:nth-child(2) { width: 168px; }
+.detail-table th:nth-child(5) { width: 120px; }
+.detail-table th:nth-child(6) { width: 120px; }
+.detail-table tbody tr:nth-child(even) { background: var(--color-surface-z1); }
+.match-badge {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font: var(--font-body2);
+}
+.match-badge.exact { background: var(--pass-bg); color: var(--pass-badge-text); }
+.match-badge.fuzzy { background: var(--review-bg); color: var(--review-text); }
+
+/* Stacked plain/diff renderings share one grid cell — fixed height swap */
+.val-wrap { display: grid; }
+.val-wrap > span { grid-area: 1 / 1; }
+.val-diff { visibility: hidden; }
+
+/* Focus-on-hover: armed by JS after a stationary hover on one row */
+.detail-table th, .detail-table td { transition: opacity 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+.detail-table tbody tr { transition: transform 0.15s ease, background 0.15s ease; }
+.detail-table.focus-armed:has(tbody tr:hover) thead th,
+.detail-table.focus-armed:has(tbody tr:hover) tbody tr:not(:hover) td { opacity: 0.2; }
+.detail-table.focus-armed tbody tr:hover { transform: scale(1.01); }
+.detail-table.focus-armed tbody tr:hover td {
+  background: var(--color-surface-white);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+.detail-table.focus-armed tbody tr:hover .val-plain { visibility: hidden; }
+.detail-table.focus-armed tbody tr:hover .val-diff { visibility: visible; }
+
+/* Matched diff: green = agrees with Compared, dimmed = source-only */
+.val-diff .same { background: var(--pass-bg); color: var(--pass-badge-text); border-radius: var(--radius-sm); padding: 0 2px; font-weight: 600; }
+.val-diff mark { background: transparent; color: var(--color-text-tertiary); }
+.val-diff mark.miss { display: none; }
+/* Compared diff: yellow + light grey = text the source didn't corroborate */
+.val-diff.cmp-diff .same { background: transparent; color: var(--color-text-primary); font-weight: 400; padding: 0; }
+.val-diff.cmp-diff mark { background: var(--review-bg); color: var(--color-text-tertiary); border-radius: var(--radius-sm); padding: 0 2px; font-weight: 400; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="section-header">
+    <span class="material-symbols-rounded">keyboard_arrow_down</span>
+    <h3>Business Name</h3>
+    <span class="check-count">· 4 sources</span>
+  </div>
+  <div class="detail-table-wrap">
+    <table class="detail-table" id="evTable">
+      <thead><tr>
+        <th>Source</th><th>Record</th><th>Compared</th><th>Matched</th><th>Match Type</th><th>Match Score</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const ROWS = [
+  ['Government', 'Secretary of State', 'Acme Trading LLC', 'Acme Trading, L.L.C.', 'exact', 1.0],
+  ['CLEAR Report', 'CLEAR — Corporate filing', 'Acme Trading LLC', 'ACME TRADING, L.L.C.', 'fuzzy', 0.94],
+  ['Bank Statement', 'Bank statement — Header', 'Acme Trading LLC', 'ACME TRDG LLC', 'fuzzy', 0.91],
+  ['Web Presence', 'Google Search (Name + State)', 'Acme Trading LLC + California', 'Acme Ventures Group — Oakland, California', 'fuzzy', 0.44],
+];
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* Order-, case-, and punctuation-insensitive token diff */
+const normTok = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, '');
+function diffHtml(anchor, found) {
+  const F = String(found).split(/\s+/);
+  const pool = new Map();
+  for (const w of String(anchor).split(/\s+/)) {
+    const n = normTok(w);
+    if (!pool.has(n)) pool.set(n, []);
+    pool.get(n).push(w);
+  }
+  const take = (n) => { const b = pool.get(n); return b && b.length ? b.shift() : null; };
+  const toks = F.map(w => {
+    const n = normTok(w);
+    return take(n) !== null ? { w, kind: 'same' } : { w, n, kind: 'add' };
+  });
+  for (const t of toks) {
+    if (t.kind !== 'add' || !t.n) continue;
+    for (const [n, bucket] of pool) {
+      if (!bucket.length || !n) continue;
+      if (n.startsWith(t.n)) { t.kind = 'stem-miss'; t.tail = bucket.shift().replace(/[^A-Za-z0-9]/g, '').slice(t.n.length); break; }
+      if (t.n.startsWith(n)) { t.kind = 'stem-add'; t.cut = n.length; bucket.shift(); break; }
+    }
+  }
+  const missing = [...pool.values()].flat().filter(w => normTok(w));
+  const out = [];
+  for (const t of toks) {
+    if (t.kind === 'same') out.push(`<span class="same">${esc(t.w)}</span>`);
+    else if (t.kind === 'stem-miss') out.push(`<span class="same">${esc(t.w)}</span><mark class="miss">${esc(t.tail)}</mark>`);
+    else if (t.kind === 'stem-add') out.push(`<span class="same">${esc(t.w.slice(0, t.cut))}</span><mark>${esc(t.w.slice(t.cut))}</mark>`);
+    else out.push(`<mark>${esc(t.w)}</mark>`);
+  }
+  if (missing.length) out.push(`<mark class="miss">${esc(missing.join(' '))}</mark>`);
+  return out.join(' ');
+}
+
+document.querySelector('#evTable tbody').innerHTML = ROWS.map(([g, rec, cmp, matched, type, score]) => `
+  <tr>
+    <td>${g}</td>
+    <td>${rec}</td>
+    <td><span class="val-wrap"><span class="val-plain">${esc(cmp)}</span><span class="val-diff cmp-diff">${diffHtml(matched, cmp)}</span></span></td>
+    <td><span class="val-wrap"><span class="val-plain">${esc(matched)}</span><span class="val-diff">${diffHtml(cmp, matched)}</span></span></td>
+    <td><span class="match-badge ${type}">${type === 'exact' ? 'Exact' : 'Fuzzy'}</span></td>
+    <td>${Math.round(score * 100)}%</td>
+  </tr>`).join('');
+
+/* Long-hover focus: arms after 600ms of a stationary pointer on ONE row;
+   armed row-to-row movement refocuses instantly; leaving disarms. */
+const table = document.getElementById('evTable');
+let hoverRow = null, armTimer = null, disarmTimer = null;
+const scheduleArm = () => {
+  clearTimeout(armTimer);
+  if (!table.classList.contains('focus-armed'))
+    armTimer = setTimeout(() => table.classList.add('focus-armed'), 600);
+};
+table.addEventListener('mouseover', e => {
+  const row = e.target.closest('tbody tr');
+  if (!row || row === hoverRow) return;
+  hoverRow = row;
+  clearTimeout(disarmTimer);
+  scheduleArm();
+});
+table.addEventListener('mousemove', e => {
+  if (!hoverRow || !hoverRow.contains(e.target)) return;
+  if (!table.classList.contains('focus-armed')) scheduleArm();
+});
+table.addEventListener('mouseout', e => {
+  if (!hoverRow) return;
+  const to = e.relatedTarget;
+  if (to && hoverRow.contains(to)) return;
+  hoverRow = null;
+  clearTimeout(armTimer);
+  if (!(to && to.closest && to.closest('tbody tr')))
+    disarmTimer = setTimeout(() => table.classList.remove('focus-armed'), 150);
+});
+</script>
+</body>
+</html>
