@@ -992,7 +992,7 @@ body.hide-subtext .biz-relation { display: none; }
 .failed-tag {
   display: inline-block;
   border: 1px solid var(--color-border);
-  background: var(--color-surface-z1);
+  background: var(--color-surface-white);
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   font: var(--font-body2);
@@ -1213,6 +1213,124 @@ body.hide-subtext .biz-relation { display: none; }
 .kyb-check-section .detail-section-body > .drawer-section:first-child { margin-top: 0; }
 .kyb-check-section .detail-table { min-width: 720px; }
 .kyb-check-section .detail-table .match-badge { white-space: nowrap; }
+
+/* Uniform columns (variation): every evidence table in the deep dive
+   shares one fixed column grid, so the Compared and Matched values start
+   at the same x-position in every table as you scroll the drawer. The
+   two value columns split the leftover width equally. */
+.kyb-uniform .detail-table.ev-cols,
+.kyb-uniform .detail-table.ev-stacked { table-layout: fixed; }
+.kyb-uniform .ev-cols th:nth-child(1),
+.kyb-uniform .ev-stacked th:nth-child(1) { width: 120px; }
+.kyb-uniform .ev-cols th:nth-child(2),
+.kyb-uniform .ev-stacked th:nth-child(2) { width: 168px; }
+.kyb-uniform .ev-cols th:nth-child(5),
+.kyb-uniform .ev-stacked th:nth-child(4) { width: 104px; }
+.kyb-uniform .ev-cols th:nth-child(6),
+.kyb-uniform .ev-stacked th:nth-child(5) { width: 96px; }
+.kyb-uniform .ev-cols td,
+.kyb-uniform .ev-stacked td { overflow-wrap: anywhere; }
+
+/* Focus-on-hover (Uniform columns, split layout only). Two variants,
+   chosen in the prototype panel:
+   — Value pair (default): hovering a Compared/Matched cell fades every
+     other cell and lifts just the hovered row's value pair.
+   — Full row (body.kyb-focus-row): hovering anywhere in a row fades the
+     other rows and header, and lifts the entire row with the same
+     white/scale/8px-elevation treatment. */
+.kyb-uniform .ev-cols th,
+.kyb-uniform .ev-cols td { transition: opacity 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
+.kyb-uniform .ev-cols tbody tr { transition: transform 0.15s ease, background 0.15s ease; }
+
+/* No hover feedback at all before the long-hover arms — the default
+   row-hover tint is suppressed in the uniform grid; rows keep their
+   resting zebra background until the 600ms focus treatment fires. */
+.kyb-uniform .ev-cols tbody tr:hover { background: transparent; }
+.kyb-uniform .ev-cols tbody tr:nth-child(even):hover { background: var(--color-surface-z1); }
+
+/* The focus treatment arms only after a sustained 600ms hover — a quick
+   sweep across the table stays calm. Leaving resets instantly (the
+   delay lives only on the hovered state). The plain→diff text swap is
+   a discrete display flip, delayed via allow-discrete. */
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) td:not(.val-cell),
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:hover,
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:not(.failed):hover td.val-cell,
+.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) thead th,
+.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td,
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover,
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td { transition-delay: 0.6s; }
+/* Plain and diff renderings stack in one grid cell; the swap is a
+   visibility flip, which reliably honors transition-delay everywhere
+   (a delayed display swap does not). Stacking also fixes the cell
+   height, so the swap can't reflow the row. */
+.val-wrap { display: grid; }
+.val-wrap > span { grid-area: 1 / 1; }
+.ev-cols .val-plain,
+.ev-cols .val-diff { transition: visibility 0s; }
+/* Once a long hover has armed the table (JS adds .focus-armed), moving
+   directly between rows re-focuses instantly — no fresh 600ms wait. */
+.ev-cols.focus-armed th,
+.ev-cols.focus-armed td,
+.ev-cols.focus-armed tbody tr,
+.ev-cols.focus-armed .val-plain,
+.ev-cols.focus-armed .val-diff { transition-delay: 0s !important; }
+.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-plain,
+.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-diff { transition-delay: 0.6s; }
+
+/* -- Value pair variant (failed rows are inert — no data to focus) -- */
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) td:not(.val-cell) { opacity: 0.2; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:hover { background: transparent; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:nth-child(even):hover { background: var(--color-surface-z1); }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:not(.failed):hover td.val-cell {
+  background: var(--color-surface-white);
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+/* -- Full row variant (failed rows are inert here too) -- */
+.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) thead th,
+.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td { opacity: 0.2; }
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover { transform: scale(1.01); }
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td {
+  background: var(--color-surface-white);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover .val-plain { visibility: hidden; }
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover .val-diff { visibility: visible; }
+/* Full row only: the Compared cell diffs too — the fuzzy parts the source
+   did not corroborate render in light grey on a yellow highlight, while
+   corroborated text stays plain. The Value-pair variant keeps the
+   Compared cell plain. */
+.val-diff.cmp-diff .same { background: transparent; color: var(--color-text-primary); font-weight: 400; padding: 0; }
+.val-diff.cmp-diff mark { background: var(--review-bg); color: var(--color-text-tertiary); border-radius: var(--radius-sm); padding: 0 2px; font-weight: 400; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols tbody tr:hover td.val-cell .val-plain.cmp { visibility: visible; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols tbody tr:hover td.val-cell .val-diff.cmp-diff { visibility: hidden; }
+/* While the pair is lifted, the Matched cell swaps to a diffed rendering
+   against Compared. Positive framing: green highlight = text that matches
+   the submitted value, plain dimmed = text only the source has. Submitted
+   text the source is missing is simply absent — no strikethrough. */
+.ev-cols .val-diff { visibility: hidden; }
+.kyb-uniform .ev-cols:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-plain { visibility: hidden; }
+.kyb-uniform .ev-cols:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-diff { visibility: visible; }
+.val-diff .same { background: var(--pass-bg); color: var(--pass-badge-text); border-radius: var(--radius-sm); padding: 0 2px; font-weight: 600; }
+.val-diff mark { background: transparent; color: var(--color-text-tertiary); }
+.val-diff mark.miss { display: none; }
+
+/* Stacked-cell variant: Compared and Matched share one cell, one 24px
+   line each, so the row grows instead of the table growing a column. */
+.stacked-val .sv-line { display: flex; gap: 8px; min-height: 24px; }
+.stacked-val .sv-label {
+  width: 72px; flex-shrink: 0;
+  font: var(--font-overline); text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  line-height: 24px;
+}
+.stacked-val .sv-text { font: 400 13px/24px var(--font-family); color: var(--color-text-primary); overflow-wrap: anywhere; }
+.stacked-val .sv-text.matched { font: 600 13px/24px var(--font-family); }
+.detail-table tr.failed .stacked-val .sv-label,
+.detail-table tr.failed .stacked-val .sv-text { color: var(--color-text-disabled); }
 
 /* ---- Data provenance annotations (prototype-only overlay) ----
    Tags every value in the KYB deep dive with the API field it comes from:
@@ -1475,6 +1593,25 @@ body.kyb-annotate .src-legend { display: flex; }
       <button data-scenario="processing">Processing</button>
       <button data-scenario="failed">Verification failed</button>
     </div>
+  </div>
+
+  <div class="proto-group" id="groupKybEvidence">
+    <p>KYB evidence layout</p>
+    <div class="opts" id="kybEvidenceOpts">
+      <button class="active" data-variant="columns">Split columns</button>
+      <button data-variant="stacked">Stacked cell</button>
+    </div>
+    <button class="proto-switch on" id="kybUniformSwitch" style="margin-top:8px">
+      Uniform columns
+      <span class="track"></span>
+    </button>
+    <p class="proto-hint">Locks every evidence table to one shared column grid, so Compared and Matched values start at the same point as you scroll the deep dive.</p>
+    <p style="margin-top:12px">On-hover focus</p>
+    <div class="opts" id="kybFocusOpts">
+      <button data-focus="pair">Value pair</button>
+      <button class="active" data-focus="row">Full row</button>
+    </div>
+    <p class="proto-hint">What lifts when you hover an evidence row in the uniform grid: just the Compared/Matched pair, or the whole row. Both reveal the match highlight.</p>
   </div>
 
   <div class="proto-group" id="groupKybAnnotate">
@@ -2837,8 +2974,8 @@ function renderOutputs() {
       const n = matchedSourceCount(c);
       sub = c.id === 'ownership'
         ? (() => { const os = r.details.ownership.owners;
-            return `Owners matched ${os.filter(o => o.verificationStatus === 'PASS').length} of ${os.length}`; })()
-        : `Matched ${n} source${n === 1 ? '' : 's'}`;
+            return `${os.filter(o => o.verificationStatus === 'PASS').length} of ${os.length} owners`; })()
+        : `${n} source${n === 1 ? '' : 's'}`;
       statusHtml = `<span class="result result-${status}">${STATUS_TEXT[status]}</span>`;
     }
     return `
@@ -2908,6 +3045,53 @@ function renderRail() {
     }));
 }
 
+/* Token diff of a found value against the submitted (Compared) value.
+   Order-insensitive so "REYES, DANIEL" vs "Daniel Reyes" reads as
+   agreement; case- and punctuation-insensitive so only meaningful drift
+   is marked. Resurrected from the Variation A exploration. */
+const normTok = (w) => w.toLowerCase().replace(/[^a-z0-9]/g, '');
+function diffHtml(anchor, found) {
+  const F = String(found).split(/\s+/);
+  const pool = new Map();
+  for (const w of String(anchor).split(/\s+/)) {
+    const n = normTok(w);
+    if (!pool.has(n)) pool.set(n, []);
+    pool.get(n).push(w);
+  }
+  const take = (n) => {
+    const b = pool.get(n);
+    return b && b.length ? b.shift() : null;
+  };
+  const toks = F.map(w => {
+    const n = normTok(w);
+    return take(n) !== null ? { w, kind: 'same' } : { w, n, kind: 'add' };
+  });
+  /* An added token that extends or truncates a leftover anchor token
+     ("TECH" vs "Technologies") shows its shared stem dimmed, only the tail marked. */
+  for (const t of toks) {
+    if (t.kind !== 'add' || !t.n) continue;
+    for (const [n, bucket] of pool) {
+      if (!bucket.length || !n) continue;
+      if (n.startsWith(t.n)) {
+        t.kind = 'stem-miss'; t.tail = bucket.shift().replace(/[^A-Za-z0-9]/g, '').slice(t.n.length); break;
+      }
+      if (t.n.startsWith(n)) {
+        t.kind = 'stem-add'; t.cut = n.length; bucket.shift(); break;
+      }
+    }
+  }
+  const missing = [...pool.values()].flat().filter(w => normTok(w));
+  const out = [];
+  for (const t of toks) {
+    if (t.kind === 'same') out.push(`<span class="same">${esc(t.w)}</span>`);
+    else if (t.kind === 'stem-miss') out.push(`<span class="same">${esc(t.w)}</span><mark class="miss">${esc(t.tail)}</mark>`);
+    else if (t.kind === 'stem-add') out.push(`<span class="same">${esc(t.w.slice(0, t.cut))}</span><mark>${esc(t.w.slice(t.cut))}</mark>`);
+    else out.push(`<mark>${esc(t.w)}</mark>`);
+  }
+  if (missing.length) out.push(`<mark class="miss">${esc(missing.join(' '))}</mark>`);
+  return out.join(' ');
+}
+
 /* One CLEAR-style table for a check's evidence. The source groups
    (Government / CLEAR Report / Bank Statement / Web Presence) become the
    Source column; match type and score are separate columns. Rows keep
@@ -2920,14 +3104,40 @@ function evidenceTableHtml(evidence) {
     </div>`;
   const ordered = SOURCE_GROUPS.flatMap(g =>
     evidence.filter(e => SOURCE_META[e.source].group === g.id).map(e => ({ e, g })));
-  return `
+  if (evidenceVariant === 'stacked') return `
     <div class="detail-table-wrap">
-      <table class="detail-table">
+      <table class="detail-table ev-stacked">
         <thead><tr>
           <th>Source${srcTag(['ui', 'grouping of evidence[].source'])}</th>
           <th>Record${srcTag(['res', 'evidence[].source'])}</th>
-          <th>Compared${srcTag(['res', 'evidence[].comparedValue'])}</th>
-          <th>Matched${srcTag(['res', 'evidence[].matchedValue'])}</th>
+          <th>Value${srcTag(['res', 'evidence[].comparedValue + matchedValue'])}</th>
+          <th>Match Type${srcTag(['res', 'evidence[].matchType'])}</th>
+          <th>Match Score${srcTag(['res', 'evidence[].score'])}</th>
+        </tr></thead>
+        <tbody>
+          ${ordered.map(({ e, g }) => `
+            <tr${e.matchType === 'failed' ? ' class="failed"' : ` title="${esc(e.reference)}"`}>
+              <td>${g.label}</td>
+              <td>${SOURCE_META[e.source].label}</td>
+              <td class="stacked-val">
+                <span class="sv-line"><span class="sv-label">Compared</span><span class="sv-text">${esc(e.comparedValue)}</span></span>
+                <span class="sv-line"><span class="sv-label">Matched</span><span class="sv-text matched">${e.matchType === 'failed' ? '—' : esc(e.matchedValue)}</span></span>
+              </td>
+              ${e.matchType === 'failed'
+                ? '<td><span class="match-badge failed">Failed</span></td><td>—</td>'
+                : `<td><span class="match-badge ${e.matchType}">${e.matchType === 'exact' ? 'Exact' : 'Fuzzy'}</span></td><td>${Math.round(e.score * 100)}%</td>`}
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+  return `
+    <div class="detail-table-wrap">
+      <table class="detail-table ev-cols">
+        <thead><tr>
+          <th>Source${srcTag(['ui', 'grouping of evidence[].source'])}</th>
+          <th>Record${srcTag(['res', 'evidence[].source'])}</th>
+          <th class="val-cell">Compared${srcTag(['res', 'evidence[].comparedValue'])}</th>
+          <th class="val-cell">Matched${srcTag(['res', 'evidence[].matchedValue'])}</th>
           <th>Match Type${srcTag(['res', 'evidence[].matchType'])}</th>
           <th>Match Score${srcTag(['res', 'evidence[].score'])}</th>
         </tr></thead>
@@ -2936,16 +3146,16 @@ function evidenceTableHtml(evidence) {
             <tr class="failed">
               <td>${g.label}</td>
               <td>${SOURCE_META[e.source].label}</td>
-              <td>${esc(e.comparedValue)}</td>
-              <td>—</td>
+              <td class="val-cell">${esc(e.comparedValue)}</td>
+              <td class="val-cell">—</td>
               <td><span class="match-badge failed">Failed</span></td>
               <td>—</td>
             </tr>` : `
             <tr title="${esc(e.reference)}">
               <td>${g.label}</td>
               <td>${SOURCE_META[e.source].label}</td>
-              <td>${esc(e.comparedValue)}</td>
-              <td>${esc(e.matchedValue)}</td>
+              <td class="val-cell"><span class="val-wrap"><span class="val-plain cmp">${esc(e.comparedValue)}</span><span class="val-diff cmp-diff">${diffHtml(e.matchedValue, e.comparedValue)}</span></span></td>
+              <td class="val-cell"><span class="val-wrap"><span class="val-plain">${esc(e.matchedValue)}</span><span class="val-diff">${diffHtml(e.comparedValue, e.matchedValue)}</span></span></td>
               <td><span class="match-badge ${e.matchType}">${e.matchType === 'exact' ? 'Exact' : 'Fuzzy'}</span></td>
               <td>${Math.round(e.score * 100)}%</td>
             </tr>`).join('')}
@@ -3018,6 +3228,38 @@ function renderDrawerContent() {
     h.addEventListener('click', () => h.closest('.detail-section').classList.toggle('collapsed')));
 }
 
+/* Focus arming: a completed 600ms hover marks the table .focus-armed so
+   moving straight onto another row re-focuses with zero delay. Leaving
+   the rows (or crossing to another table) disarms after a short grace. */
+{
+  const drawerContentEl = document.getElementById('kybDrawerContent');
+  let hoverRow = null, armTimer = null, disarmTimer = null;
+  const disarmAll = (except) => document.querySelectorAll('.ev-cols.focus-armed')
+    .forEach(t => { if (t !== except) t.classList.remove('focus-armed'); });
+
+  drawerContentEl.addEventListener('mouseover', e => {
+    const row = e.target.closest('.ev-cols tbody tr:not(.failed)');
+    const table = e.target.closest('.ev-cols');
+    if (!row || !table || row === hoverRow) return;
+    hoverRow = row;
+    clearTimeout(disarmTimer);
+    clearTimeout(armTimer);
+    disarmAll(table);
+    if (!table.classList.contains('focus-armed'))
+      armTimer = setTimeout(() => table.classList.add('focus-armed'), 600);
+  });
+
+  drawerContentEl.addEventListener('mouseout', e => {
+    if (!hoverRow) return;
+    const to = e.relatedTarget;
+    if (to && hoverRow.contains(to)) return;
+    const toRow = to && to.closest ? to.closest('.ev-cols tbody tr:not(.failed)') : null;
+    hoverRow = null;
+    clearTimeout(armTimer);
+    if (!toRow) disarmTimer = setTimeout(() => disarmAll(null), 150);
+  });
+}
+
 /* Scroll-spy: the active rail item follows the section under the top
    third of the drawer viewport. */
 document.getElementById('kybDrawerContent').addEventListener('scroll', () => {
@@ -3034,6 +3276,34 @@ document.getElementById('kybDrawerContent').addEventListener('scroll', () => {
 
 const kybDrawer = document.getElementById('kybDrawer');
 const kybScrim = document.getElementById('kybDrawerScrim');
+
+/* Evidence layout variant: 'columns' (Compared/Matched side by side) or
+   'stacked' (both in one cell, one 24px line each). Controlled from the
+   prototype panel, alongside the Uniform columns variation. */
+let evidenceVariant = 'columns';
+document.querySelectorAll('#kybEvidenceOpts button').forEach(btn =>
+  btn.addEventListener('click', () => {
+    if (evidenceVariant === btn.dataset.variant) return;
+    evidenceVariant = btn.dataset.variant;
+    document.querySelectorAll('#kybEvidenceOpts button').forEach(b =>
+      b.classList.toggle('active', b === btn));
+    renderDrawerContent();
+  }));
+
+document.querySelectorAll('#kybFocusOpts button').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#kybFocusOpts button').forEach(b =>
+      b.classList.toggle('active', b === btn));
+    document.body.classList.toggle('kyb-focus-row', btn.dataset.focus === 'row');
+  }));
+
+const kybUniformSwitch = document.getElementById('kybUniformSwitch');
+document.body.classList.add('kyb-uniform');
+document.body.classList.add('kyb-focus-row'); /* Full row is the default focus variant */
+kybUniformSwitch.addEventListener('click', () => {
+  const on = kybUniformSwitch.classList.toggle('on');
+  document.body.classList.toggle('kyb-uniform', on);
+});
 
 function openKybDrawer(checkId) {
   activeCheck = checkId;
