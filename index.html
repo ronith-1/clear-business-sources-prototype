@@ -1302,57 +1302,39 @@ body.hide-subtext .biz-relation { display: none; }
 .kyb-uniform .ev-cols tbody tr:hover { background: transparent; }
 .kyb-uniform .ev-cols tbody tr:nth-child(even):hover { background: var(--color-surface-z1); }
 
-/* The focus treatment arms only after a sustained 600ms hover — a quick
-   sweep across the table stays calm. Leaving resets instantly (the
-   delay lives only on the hovered state). The plain→diff text swap is
-   a discrete display flip, delayed via allow-discrete. */
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) td:not(.val-cell),
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:hover,
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:not(.failed):hover td.val-cell,
-.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) thead th,
-.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td,
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover,
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td { transition-delay: var(--focus-delay, 0.6s); }
 /* Plain and diff renderings stack in one grid cell; the swap is a
-   visibility flip, which reliably honors transition-delay everywhere
-   (a delayed display swap does not). Stacking also fixes the cell
-   height, so the swap can't reflow the row. */
+   visibility flip. Stacking also fixes the cell height, so the swap
+   can't reflow the row. */
 .val-wrap { display: grid; }
 .val-wrap > span { grid-area: 1 / 1; }
-.ev-cols .val-plain,
-.ev-cols .val-diff { transition: visibility 0s; }
-/* Once a long hover has armed the table (JS adds .focus-armed), moving
-   directly between rows re-focuses instantly — no fresh 600ms wait. */
-.ev-cols.focus-armed th,
-.ev-cols.focus-armed td,
-.ev-cols.focus-armed tbody tr,
-.ev-cols.focus-armed .val-plain,
-.ev-cols.focus-armed .val-diff { transition-delay: 0s !important; }
-.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-plain,
-.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-diff { transition-delay: var(--focus-delay, 0.6s); }
+
+/* The focus treatment is gated entirely on .focus-armed, which JS adds
+   only after ONE row has been continuously hovered for the full delay —
+   sweeping across several rows never accumulates toward the trigger.
+   While armed, moving between rows re-focuses instantly; leaving the
+   rows disarms after a short grace. */
 
 /* -- Value pair variant (failed rows are inert — no data to focus) -- */
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) td:not(.val-cell) { opacity: 0.2; }
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:hover { background: transparent; }
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:nth-child(even):hover { background: var(--color-surface-z1); }
-.kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) tbody tr:not(.failed):hover td.val-cell {
+.kyb-uniform:not(.kyb-focus-row) .ev-cols.focus-armed:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
+.kyb-uniform:not(.kyb-focus-row) .ev-cols.focus-armed:has(tr:not(.failed) td.val-cell:hover) td:not(.val-cell) { opacity: 0.2; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols.focus-armed:has(tr:not(.failed) td.val-cell:hover) tbody tr:hover { background: transparent; }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols.focus-armed:has(tr:not(.failed) td.val-cell:hover) tbody tr:nth-child(even):hover { background: var(--color-surface-z1); }
+.kyb-uniform:not(.kyb-focus-row) .ev-cols.focus-armed:has(tr:not(.failed) td.val-cell:hover) tbody tr:not(.failed):hover td.val-cell {
   background: var(--color-surface-white);
   transform: scale(1.02);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
 }
 
 /* -- Full row variant (failed rows are inert here too) -- */
-.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) thead th,
-.kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td { opacity: 0.2; }
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover { transform: scale(1.01); }
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td {
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed:has(tbody tr:not(.failed):hover) thead th,
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td { opacity: 0.2; }
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed tbody tr:not(.failed):hover { transform: scale(1.01); }
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed tbody tr:not(.failed):hover td {
   background: var(--color-surface-white);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
 }
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover .val-plain { visibility: hidden; }
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover .val-diff { visibility: visible; }
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed tbody tr:not(.failed):hover .val-plain { visibility: hidden; }
+.kyb-uniform.kyb-focus-row .ev-cols.focus-armed tbody tr:not(.failed):hover .val-diff { visibility: visible; }
 /* Full row only: the Compared cell diffs too — the fuzzy parts the source
    did not corroborate render in light grey on a yellow highlight, while
    corroborated text stays plain. The Value-pair variant keeps the
@@ -1366,8 +1348,8 @@ body.hide-subtext .biz-relation { display: none; }
    the submitted value, plain dimmed = text only the source has. Submitted
    text the source is missing is simply absent — no strikethrough. */
 .ev-cols .val-diff { visibility: hidden; }
-.kyb-uniform .ev-cols:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-plain { visibility: hidden; }
-.kyb-uniform .ev-cols:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-diff { visibility: visible; }
+.kyb-uniform .ev-cols.focus-armed:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-plain { visibility: hidden; }
+.kyb-uniform .ev-cols.focus-armed:has(td.val-cell:hover) tbody tr:hover td.val-cell .val-diff { visibility: visible; }
 .val-diff .same { background: var(--pass-bg); color: var(--pass-badge-text); border-radius: var(--radius-sm); padding: 0 2px; font-weight: 600; }
 .val-diff mark { background: transparent; color: var(--color-text-tertiary); }
 .val-diff mark.miss { display: none; }
@@ -3430,13 +3412,12 @@ document.querySelectorAll('#kybEvidenceOpts button').forEach(btn =>
     renderDrawerContent();
   }));
 
-/* Hover-delay slider: drives both the CSS transition delays (via the
-   --focus-delay variable) and the JS arming timer. */
+/* Hover-delay slider: drives the arming timer — the single source of
+   truth for how long one row must be continuously hovered. */
 let focusDelayMs = 600;
 document.getElementById('kybDelaySlider').addEventListener('input', e => {
   focusDelayMs = +e.target.value;
   document.getElementById('kybDelayVal').textContent = focusDelayMs;
-  document.documentElement.style.setProperty('--focus-delay', focusDelayMs + 'ms');
 });
 
 document.querySelectorAll('#kybFocusOpts button').forEach(btn =>
