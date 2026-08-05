@@ -3228,7 +3228,7 @@ function evidenceTableHtml(evidence) {
         </tr></thead>
         <tbody>
           ${ordered.map(({ e, g }) => `
-            <tr${e.matchType === 'failed' ? ' class="failed"' : ` title="${esc(e.reference)}"`}>
+            <tr${e.matchType === 'failed' ? ' class="failed"' : ` data-ref="${esc(e.reference)}"`}>
               <td>${g.label}</td>
               <td>${SOURCE_META[e.source].label}</td>
               <td class="stacked-val">
@@ -3263,7 +3263,7 @@ function evidenceTableHtml(evidence) {
               <td><span class="match-badge failed">Failed</span></td>
               <td>—</td>
             </tr>` : `
-            <tr title="${esc(e.reference)}">
+            <tr data-ref="${esc(e.reference)}">
               <td>${g.label}</td>
               <td>${SOURCE_META[e.source].label}</td>
               <td class="val-cell"><span class="val-wrap"><span class="val-plain cmp">${esc(e.comparedValue)}</span><span class="val-diff cmp-diff">${diffHtml(e.matchedValue, e.comparedValue)}</span></span></td>
