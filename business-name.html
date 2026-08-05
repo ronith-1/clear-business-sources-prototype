@@ -31,13 +31,18 @@
   --review-text: #9A4524;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
+/* Framed for a 1280x720 (16:9) recording crop: the card caps at 1040px
+   so a 1280-wide frame keeps ~120px of background either side, and it
+   sits dead-center vertically so a 720-tall crop gets equal air above
+   and below. Record a 1280x720 region centered on the card. */
 body {
   font: var(--font-body1);
   background: #F5F6F8;
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   place-items: center;
-  padding: 80px 48px;
+  padding: 48px;
+  overflow: auto;
 }
 .card {
   background: var(--color-surface-white);
@@ -45,7 +50,7 @@ body {
   box-shadow: 0 12px 32px rgba(23, 28, 38, 0.10), 0 2px 8px rgba(23, 28, 38, 0.06);
   padding: 40px;
   width: 100%;
-  max-width: 1272px;
+  max-width: 1040px;
 }
 .section-header {
   display: flex; align-items: center; gap: 8px;
