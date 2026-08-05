@@ -2801,19 +2801,19 @@ const RESULT_REVIEW = {
     businessName: {
       verificationStatus: 'PASS',
       identityResolution: {
-        resolvedName: 'Blue Oak Technologies, L.L.C.',
+        resolvedName: 'Acme Trading, L.L.C.',
         resolvedNameSource: 'sosFiling',
         nameUpdated: true,
       },
       evidence: [
-        ev('sosFiling', 'Blue Oak Technologies, L.L.C.', 'Blue Oak Technologies LLC', 'exact', 1.0,
+        ev('sosFiling', 'Acme Trading, L.L.C.', 'Acme Trading LLC', 'exact', 1.0,
           'CA-SOS entity 202104310482 · filing retrieved 2026-08-01T14:22:08Z'),
-        ev('clearCorporateFiling', 'BLUE OAK TECHNOLOGIES, L.L.C.', 'Blue Oak Technologies LLC', 'fuzzy', 0.94,
+        ev('clearCorporateFiling', 'ACME TRADING, L.L.C.', 'Acme Trading LLC', 'fuzzy', 0.94,
           'CLEAR corp record c-88371-CA · normalized suffix mismatch (LLC vs L.L.C.)'),
-        ev('bankStatementHeader', 'BLUE OAK TECH LLC', 'Blue Oak Technologies LLC', 'fuzzy', 0.91,
+        ev('bankStatementHeader', 'ACME TRDG LLC', 'Acme Trading LLC', 'fuzzy', 0.91,
           'bank-6862-transactions-dec-2024.csv · header row accountHolderName'),
-        ev('googleSearchNameState', 'Blue Oak Ventures Group — Oakland, California', 'Blue Oak Technologies LLC + California', 'fuzzy', 0.44,
-          'serp query "Blue Oak Technologies LLC California" · result rank 1 · weak name overlap, different entity'),
+        ev('googleSearchNameState', 'Acme Ventures Group — Oakland, California', 'Acme Trading LLC + California', 'fuzzy', 0.44,
+          'serp query "Acme Trading LLC California" · result rank 1 · weak name overlap, different entity'),
       ],
     },
     businessAddress: {
