@@ -983,6 +983,11 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
 }
 .proto-switch.on .track { background: var(--color-brand-primary); }
 .proto-switch.on .track::after { transform: translateX(16px); }
+.proto-group input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-brand-primary);
+  margin: 4px 0;
+}
 .proto-group > p.proto-hint {
   font: var(--font-secondary);
   color: var(--color-text-tertiary);
@@ -1308,7 +1313,7 @@ body.hide-subtext .biz-relation { display: none; }
 .kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) thead th,
 .kyb-uniform.kyb-focus-row .ev-cols:has(tbody tr:not(.failed):hover) tbody tr:not(:hover) td,
 .kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover,
-.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td { transition-delay: 0.6s; }
+.kyb-uniform.kyb-focus-row .ev-cols tbody tr:not(.failed):hover td { transition-delay: var(--focus-delay, 0.6s); }
 /* Plain and diff renderings stack in one grid cell; the swap is a
    visibility flip, which reliably honors transition-delay everywhere
    (a delayed display swap does not). Stacking also fixes the cell
@@ -1325,7 +1330,7 @@ body.hide-subtext .biz-relation { display: none; }
 .ev-cols.focus-armed .val-plain,
 .ev-cols.focus-armed .val-diff { transition-delay: 0s !important; }
 .kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-plain,
-.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-diff { transition-delay: 0.6s; }
+.kyb-uniform .ev-cols tbody tr:not(.failed):hover td.val-cell .val-diff { transition-delay: var(--focus-delay, 0.6s); }
 
 /* -- Value pair variant (failed rows are inert — no data to focus) -- */
 .kyb-uniform:not(.kyb-focus-row) .ev-cols:has(tr:not(.failed) td.val-cell:hover) th:not(.val-cell),
@@ -1744,6 +1749,9 @@ body.kyb-annotate .src-legend { display: flex; }
       <button class="active" data-focus="row">Full row</button>
     </div>
     <p class="proto-hint">What lifts when you hover an evidence row in the uniform grid: just the Compared/Matched pair, or the whole row. Both reveal the match highlight.</p>
+    <p style="margin-top:12px">Hover delay · <span id="kybDelayVal">600</span> ms</p>
+    <input type="range" id="kybDelaySlider" min="0" max="2000" step="100" value="600">
+    <p class="proto-hint">How long a row must be hovered before the focus treatment triggers.</p>
   </div>
 
   <div class="proto-group" id="groupKybAnnotate">
@@ -2822,8 +2830,8 @@ const RESULT_REVIEW = {
           'CLEAR corp record c-88371-CA · normalized suffix mismatch (LLC vs L.L.C.)'),
         ev('bankStatementHeader', 'BLUE OAK TECH LLC', 'Blue Oak Technologies LLC', 'fuzzy', 0.91,
           'bank-6862-transactions-dec-2024.csv · header row accountHolderName'),
-        ev('googleSearchNameState', 'Blue Oak Technologies LLC — San Francisco, CA', 'Blue Oak Technologies LLC + California', 'exact', 1.0,
-          'serp query "Blue Oak Technologies LLC California" · result rank 1 · blueoaktech.com'),
+        ev('googleSearchNameState', 'Blue Oak Ventures Group — Oakland, California', 'Blue Oak Technologies LLC + California', 'fuzzy', 0.44,
+          'serp query "Blue Oak Technologies LLC California" · result rank 1 · weak name overlap, different entity'),
       ],
     },
     businessAddress: {
@@ -3378,7 +3386,7 @@ function renderDrawerContent() {
     clearTimeout(armTimer);
     disarmAll(table);
     if (!table.classList.contains('focus-armed'))
-      armTimer = setTimeout(() => table.classList.add('focus-armed'), 600);
+      armTimer = setTimeout(() => table.classList.add('focus-armed'), focusDelayMs);
   });
 
   drawerContentEl.addEventListener('mouseout', e => {
@@ -3421,6 +3429,15 @@ document.querySelectorAll('#kybEvidenceOpts button').forEach(btn =>
       b.classList.toggle('active', b === btn));
     renderDrawerContent();
   }));
+
+/* Hover-delay slider: drives both the CSS transition delays (via the
+   --focus-delay variable) and the JS arming timer. */
+let focusDelayMs = 600;
+document.getElementById('kybDelaySlider').addEventListener('input', e => {
+  focusDelayMs = +e.target.value;
+  document.getElementById('kybDelayVal').textContent = focusDelayMs;
+  document.documentElement.style.setProperty('--focus-delay', focusDelayMs + 'ms');
+});
 
 document.querySelectorAll('#kybFocusOpts button').forEach(btn =>
   btn.addEventListener('click', () => {
