@@ -831,6 +831,24 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
 .overflow-menu .menu-header + .overflow-item { border-top: none; }
 
 /* ============ Prototype control panel ============ */
+/* The Prototype button hides until the bottom-right corner is hovered
+   for 2s (an invisible fixed hotspot arms it). Visibility carries the
+   delay — it reliably honors transition-delay — and also blocks clicks
+   while hidden. Leaving the corner hides it again immediately. */
+.corner-hotspot {
+  position: fixed;
+  bottom: 0; right: 0;
+  width: 160px; height: 120px;
+  z-index: 61;
+}
+.corner-hotspot .panel-btn {
+  visibility: hidden; opacity: 0;
+  transition: visibility 0s, opacity 0.2s ease;
+}
+.corner-hotspot:hover .panel-btn {
+  visibility: visible; opacity: 1;
+  transition-delay: 2s, 2s;
+}
 .panel-btn {
   position: fixed;
   bottom: 20px; right: 20px;
@@ -1663,9 +1681,11 @@ body.kyb-annotate .src-legend { display: flex; }
 </div>
 
 <!-- ============ Prototype control panel ============ -->
-<button class="panel-btn" id="panelBtn">
-  <span class="material-symbols-rounded">tune</span> Prototype
-</button>
+<div class="corner-hotspot">
+  <button class="panel-btn" id="panelBtn">
+    <span class="material-symbols-rounded">tune</span> Prototype
+  </button>
+</div>
 <aside class="proto-panel" id="protoPanel">
   <div class="proto-panel-header">
     <h4>Prototype controls</h4>
