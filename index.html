@@ -159,8 +159,9 @@ body {
   box-shadow: var(--shadow-card);
 }
 
-/* Left nav panel */
-.left-panel { width: 240px; flex-shrink: 0; padding: 20px 16px; }
+/* Left nav panel — sticky so the module list stays put while the
+   main column scrolls; items scroll to their module card. */
+.left-panel { width: 240px; flex-shrink: 0; padding: 20px 16px; position: sticky; top: 8px; }
 .hv-overline {
   font: var(--font-overline);
   color: var(--color-text-secondary);
@@ -185,8 +186,9 @@ body {
 }
 .nav-item.active .material-symbols-rounded { color: var(--color-brand-primary); }
 
-/* Main card */
-.main-card { flex: 1; min-width: 0; }
+/* Main column — module cards stacked in one scrolling view */
+.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.main-card { min-width: 0; scroll-margin-top: 16px; }
 .module-header { display: flex; align-items: center; gap: 12px; padding: 24px 24px 16px; }
 .module-icon {
   width: 36px; height: 36px;
@@ -974,6 +976,281 @@ body.hide-flag-dot .triage-row .flag-dot { display: none; }
 /* Owner subtext under a business name — toggled globally from the panel */
 .biz-relation { font: var(--font-secondary); color: var(--color-text-tertiary); margin-top: 2px; }
 body.hide-subtext .biz-relation { display: none; }
+/* =====================================================================
+   KYB Verification module (second card in the main column)
+   ===================================================================== */
+
+/* ---- Summary strip (transaction state / routing / failed checks) ---- */
+.summary-strip {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px;
+  padding: 20px 24px 0;
+  font: var(--font-body1);
+}
+.summary-strip .label { color: var(--color-text-secondary); }
+.summary-strip .value { font: var(--font-body1-heavy); color: var(--color-text-primary); }
+.summary-strip .group { display: inline-flex; align-items: center; gap: 8px; }
+.failed-tag {
+  display: inline-block;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-z1);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font: var(--font-body2);
+  color: var(--review-text);
+}
+.processing-chip { display: inline-flex; align-items: center; gap: 8px; }
+.processing-chip .spin {
+  width: 12px; height: 12px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-brand-primary);
+  border-radius: 50%;
+  animation: kybspin 0.9s linear infinite;
+}
+@keyframes kybspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .processing-chip .spin { animation: none; } }
+
+/* ---- Error banner (verification failed) ---- */
+.error-banner {
+  display: flex; gap: 12px; align-items: flex-start;
+  border: 1px solid #F0C4BC;
+  background: var(--fail-bg);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.error-banner .material-symbols-rounded { color: var(--color-fail); flex-shrink: 0; }
+.error-banner h5 { font: var(--font-body1-heavy); color: var(--fail-badge-text); margin-bottom: 4px; }
+.error-banner p { font: var(--font-body2); color: var(--color-text-primary); }
+.error-banner .next-action { margin-top: 8px; font: var(--font-body2); color: var(--color-text-secondary); }
+
+/* ---- Output rows: two-line variant with chevron ---- */
+.output-row .row-main { min-width: 0; }
+.output-row .row-title { font: var(--font-body2); color: var(--color-text-primary); }
+.output-row .row-sub { font: var(--font-secondary); color: var(--color-text-secondary); margin-top: 2px; }
+.output-row .row-end { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.output-row .row-chevron { font-size: 18px; color: var(--color-text-tertiary); }
+.output-row[aria-disabled="true"] { cursor: default; color: var(--color-text-disabled); }
+.output-row[aria-disabled="true"]:hover { background: inherit; }
+.output-row[aria-disabled="true"]:nth-child(even):hover { background: var(--color-surface-z1); }
+.output-row[aria-disabled="true"] .row-title,
+.output-row[aria-disabled="true"] .row-sub { color: var(--color-text-disabled); }
+.result-muted { color: var(--color-text-disabled); }
+
+/* ---- KYB drawer: narrower, left rail of checks ---- */
+.kyb-drawer { width: calc(100vw - 104px); }
+.kyb-drawer .drawer-header { border-bottom: 1px solid var(--color-border); }
+.kyb-drawer .drawer-body { padding: 0; gap: 0; }
+.check-rail {
+  width: 240px; flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+.check-rail .hv-overline { padding: 0 12px; }
+.rail-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+  border: none; background: transparent;
+  font: var(--font-body2); color: var(--color-text-primary);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+}
+.rail-item:hover { background: var(--color-surface-z2); }
+.rail-item.active {
+  background: rgba(85, 62, 241, 0.08);
+  color: var(--color-brand-primary);
+  font: var(--font-body2-medium);
+}
+.rail-item .rail-status { font: var(--font-body2-medium); flex-shrink: 0; }
+.kyb-drawer .drawer-content { padding: 24px 32px 40px; }
+
+.status-pill {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  font: var(--font-body2-medium);
+}
+.status-pill.pass { background: var(--pass-bg); color: var(--pass-badge-text); }
+.status-pill.review { background: var(--review-bg); color: var(--review-text); }
+.status-pill.fail { background: var(--fail-bg); color: var(--fail-badge-text); }
+.why-line { margin-top: 8px; font: var(--font-body1); color: var(--color-text-secondary); }
+
+.drawer-section { margin-top: 32px; }
+.drawer-section > .hv-overline { margin-bottom: 12px; }
+
+/* Decision inputs table */
+.decision-table {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.decision-row {
+  display: flex; justify-content: space-between; gap: 16px;
+  padding: 12px 16px;
+  font: var(--font-body2);
+}
+.decision-row:nth-child(even) { background: var(--color-surface-z1); }
+.decision-row .k { color: var(--color-text-primary); flex-shrink: 0; }
+.decision-row .v { text-align: right; font: var(--font-body2-medium); color: var(--color-text-primary); }
+.decision-row .v .note { display: block; font: var(--font-secondary); color: var(--color-text-secondary); margin-top: 2px; }
+.decision-row .v.empty { color: var(--color-text-tertiary); font: var(--font-body2); }
+
+/* Source groups */
+.source-group { margin-bottom: 24px; }
+.source-group-header { display: flex; align-items: center; gap: 8px; padding-bottom: 8px; }
+.source-group-header .material-symbols-rounded { font-size: 18px; color: var(--color-text-secondary); }
+.source-group-header h5 { font: var(--font-body1-heavy); color: var(--color-text-primary); }
+.source-group-header .count { font: var(--font-body2); color: var(--color-text-secondary); }
+
+/* Evidence rows */
+.evidence-list {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.evidence-row { border-top: 1px solid var(--color-border); }
+.evidence-row:first-child { border-top: none; }
+.evidence-main {
+  display: flex; align-items: flex-start; gap: 16px;
+  width: 100%;
+  border: none; background: var(--color-surface-white);
+  padding: 12px 16px;
+  cursor: pointer;
+  text-align: left;
+  font: var(--font-body2);
+}
+.evidence-main:hover { background: var(--color-surface-z2); }
+.evidence-source { width: 168px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2px; }
+.evidence-source .src-name { font: var(--font-body2-medium); color: var(--color-text-primary); }
+.evidence-source .src-key { font: var(--font-secondary); color: var(--color-text-tertiary); }
+.evidence-values { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.evidence-values .val-line { display: flex; gap: 8px; min-width: 0; }
+.evidence-values .val-label {
+  width: 72px; flex-shrink: 0;
+  font: var(--font-secondary); color: var(--color-text-secondary);
+  padding-top: 1px;
+}
+.evidence-values .val-text { font: var(--font-body2); color: var(--color-text-primary); overflow-wrap: anywhere; }
+.evidence-values .val-text.matched { font: var(--font-body2-medium); }
+.evidence-match {
+  width: 148px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 6px;
+}
+.match-badge {
+  display: inline-block;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font: var(--font-body2);
+}
+.match-badge.exact { background: var(--pass-bg); color: var(--pass-badge-text); }
+.match-badge.fuzzy { background: var(--review-bg); color: var(--review-text); }
+.match-badge.failed { background: var(--color-surface-white); border: 1px solid var(--color-border); color: var(--color-text-disabled); }
+/* Failed source: outage is "no data", not a mismatch — greyed, no score, no tooltip */
+.detail-table tr.failed td { background: var(--color-surface-z1); color: var(--color-text-disabled); }
+.score-meter { display: flex; align-items: center; gap: 8px; }
+.score-meter .bar {
+  width: 72px; height: 4px;
+  background: var(--color-surface-z1);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.score-meter .fill { display: block; height: 100%; background: var(--color-brand-primary); }
+.score-meter .pct { font: var(--font-secondary); color: var(--color-text-secondary); }
+.evidence-caret {
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  transition: transform 0.2s ease;
+  align-self: center;
+}
+.evidence-row.open .evidence-caret { transform: rotate(180deg); }
+.evidence-ref {
+  display: none;
+  background: var(--color-surface-z1);
+  border-top: 1px solid var(--color-border);
+  padding: 12px 16px;
+}
+.evidence-row.open .evidence-ref { display: block; }
+.evidence-ref .ref-label { font: var(--font-overline); text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-secondary); margin-bottom: 6px; }
+.evidence-ref code {
+  display: block;
+  font: 400 12px/18px 'SF Mono', 'Menlo', monospace;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+/* Map embed (Business Address · googleMaps evidence) */
+.map-embed { margin-top: 12px; }
+.map-embed iframe {
+  width: 100%; height: 260px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: block;
+}
+.map-embed .map-caption { margin-top: 8px; font: var(--font-secondary); color: var(--color-text-secondary); }
+
+/* Owner sub-sections (Ownership check) — plain title above the table */
+.owner-section { margin-bottom: 24px; }
+.owner-section:last-child { margin-bottom: 0; }
+.owner-title {
+  display: flex; align-items: center; gap: 8px;
+  font: var(--font-body1-heavy); color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+.owner-title .owner-order { font: var(--font-secondary); color: var(--color-text-secondary); }
+
+/* KYB inputs: one flat table (no tabs), so all four corners are rounded */
+.kv-table.kyb-kv { border-radius: var(--radius-md); }
+
+/* KYB drawer: all five checks stacked in one scrolling column, each a
+   collapsible .detail-section exactly like the CLEAR drawer. */
+.kyb-drawer .drawer-content { position: relative; }
+.kyb-check-section { scroll-margin-top: 24px; }
+.kyb-check-section .detail-section-header .badge { margin-left: 4px; }
+.kyb-check-section .check-count { font: var(--font-body1); color: var(--color-text-secondary); }
+.kyb-check-section .detail-section-body > .drawer-section:first-child { margin-top: 0; }
+.kyb-check-section .detail-table { min-width: 720px; }
+.kyb-check-section .detail-table .match-badge { white-space: nowrap; }
+
+/* ---- Data provenance annotations (prototype-only overlay) ----
+   Tags every value in the KYB deep dive with the API field it comes from:
+   req = request payload · res = result payload · ui = derived in the UI. */
+.src-tag {
+  display: none;
+  font: 600 10px/14px 'SF Mono', 'Menlo', monospace;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  vertical-align: middle;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+body.kyb-annotate .src-tag { display: inline-block; }
+.src-tag.req { background: rgba(85, 62, 241, 0.08); color: var(--color-brand-text); }
+.src-tag.res { background: var(--pass-bg); color: var(--pass-badge-text); }
+.src-tag.ui  { background: var(--review-bg); color: var(--review-text); }
+.src-legend {
+  display: none;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-z1);
+  padding: 10px 16px;
+  margin-bottom: 24px;
+  font: var(--font-body2);
+  color: var(--color-text-secondary);
+}
+body.kyb-annotate .src-legend { display: flex; }
+.src-legend .src-tag { margin-left: 0; }
+
+/* Neutral variant of .no-records — the base one carries a green check */
+.no-records.neutral .material-symbols-rounded {
+  color: var(--color-text-secondary);
+  font-variation-settings: 'FILL' 0;
+}
 </style>
 </head>
 <body>
@@ -1011,12 +1288,16 @@ body.hide-subtext .biz-relation { display: none; }
     </div>
     <div class="section">
       <p class="hv-overline">Modules Used</p>
-      <button class="nav-item active"><span class="material-symbols-rounded">policy</span> CLEAR Analysis</button>
+      <button class="nav-item module-nav active" data-module="moduleClear"><span class="material-symbols-rounded">policy</span> CLEAR Analysis</button>
+      <button class="nav-item module-nav" data-module="moduleKyb"><span class="material-symbols-rounded">verified</span> KYB Verification</button>
     </div>
   </aside>
 
-  <!-- Main module card -->
-  <main class="main-card hv-card">
+  <!-- Main column: module cards stacked in one scrolling view -->
+  <div class="main-col">
+
+  <!-- CLEAR Analysis module card -->
+  <main class="main-card hv-card" id="moduleClear">
     <div class="module-header">
       <div class="module-icon"><span class="material-symbols-rounded">contact_page</span></div>
       <h2 class="module-title">CLEAR Analysis</h2>
@@ -1053,6 +1334,41 @@ body.hide-subtext .biz-relation { display: none; }
       </section>
     </div>
   </main>
+
+  <!-- KYB Verification module card -->
+  <section class="main-card hv-card" id="moduleKyb">
+    <div class="module-header">
+      <div class="module-icon"><span class="material-symbols-rounded">verified</span></div>
+      <h2 class="module-title">KYB Verification</h2>
+    </div>
+
+    <div class="attempt-tabs">
+      <button class="attempt-tab active">
+        <span class="material-symbols-rounded check-icon">check_circle</span> 1st attempt
+      </button>
+    </div>
+
+    <!-- Transaction state / routing action / failed checks -->
+    <div class="summary-strip" id="kybSummaryStrip"></div>
+
+    <div class="module-body">
+      <!-- Inputs -->
+      <section class="io-col">
+        <p class="hv-overline">Inputs</p>
+        <div class="kv-table kyb-kv" id="kybInputKv"></div>
+        <div class="file-uploads" id="kybFileUploads"></div>
+      </section>
+
+      <!-- Outputs -->
+      <section class="io-col">
+        <p class="hv-overline">Results</p>
+        <div id="kybOutputBanner"></div>
+        <div class="output-list" id="kybOutputList"></div>
+      </section>
+    </div>
+  </section>
+
+  </div><!-- /main-col -->
 
   <!-- Right metadata panel -->
   <aside class="right-panel">
@@ -1100,6 +1416,22 @@ body.hide-subtext .biz-relation { display: none; }
   </div>
 </div>
 
+<!-- ============ KYB Deep Dive Drawer ============ -->
+<div class="drawer-scrim" id="kybDrawerScrim"></div>
+<div class="drawer kyb-drawer" id="kybDrawer" role="dialog" aria-modal="true" aria-label="KYB Verification Deep Dive">
+  <div class="drawer-header">
+    <h2 class="drawer-title">KYB Verification — Deep Dive
+      <span class="biz-scope">· Blue Oak Technologies LLC</span>
+      <span class="material-symbols-rounded" title="Source-level evidence behind each KYB check">info</span>
+    </h2>
+    <button class="drawer-close" id="kybDrawerClose" aria-label="Close"><span class="material-symbols-rounded" style="font-size:24px">close</span></button>
+  </div>
+  <div class="drawer-body">
+    <aside class="check-rail" id="kybCheckRail"></aside>
+    <div class="drawer-content" id="kybDrawerContent"></div>
+  </div>
+</div>
+
 <!-- ============ Prototype control panel ============ -->
 <button class="panel-btn" id="panelBtn">
   <span class="material-symbols-rounded">tune</span> Prototype
@@ -1133,6 +1465,25 @@ body.hide-subtext .biz-relation { display: none; }
       <button class="active" data-scenario="typical">Typical · 2 flagged / 14</button>
       <button data-scenario="heavy">Heavy · 6 flagged / 22</button>
     </div>
+  </div>
+
+  <div class="proto-group" id="groupKybScenario">
+    <p>KYB scenario</p>
+    <div class="opts" id="kybScenarioOpts">
+      <button class="active" data-scenario="review">Manual review · 2 checks failed</button>
+      <button data-scenario="pass">Auto-approve · all pass</button>
+      <button data-scenario="processing">Processing</button>
+      <button data-scenario="failed">Verification failed</button>
+    </div>
+  </div>
+
+  <div class="proto-group" id="groupKybAnnotate">
+    <p>KYB data provenance</p>
+    <button class="proto-switch" id="kybAnnotateSwitch">
+      Annotate data sources
+      <span class="track"></span>
+    </button>
+    <p class="proto-hint">Tags every value in the deep dive with its API field path — request payload, result payload, or UI-derived.</p>
   </div>
 
   <details class="proto-group proto-section">
@@ -2103,6 +2454,663 @@ document.querySelectorAll('.topbar-tab').forEach((tab) =>
 
 buildBusinesses(state.scenario);
 render();
+</script>
+
+<script>
+/* =====================================================================
+   KYB VERIFICATION MODULE
+   Self-contained (IIFE) so it shares no globals with the CLEAR script.
+   Mock data mirrors the KYB API contract:
+   request { transactionId, business, owners[], bankStatements[] }
+   result  { transactionState, summary{action, details},
+             checkListSummary{overall}, details{...} }
+   evidence[] = { source, matchedValue, comparedValue, matchType, score, reference }
+   ===================================================================== */
+(() => {
+
+const REQUEST = {
+  transactionId: 'txn_9f2e1c8a-77b4-4d1e-a6c3-0b52e8d94f10',
+  business: {
+    legalName: 'Blue Oak Technologies LLC',
+    dba: 'Blue Oak Tech',
+    tin: '84-2917465',
+    address: {
+      fullAddress: '1458 Pacific Avenue, Suite 301',
+      city: 'San Francisco',
+      state: 'California',
+      zip: '94109',
+    },
+  },
+  owners: [
+    { firstName: 'Daniel', lastName: 'Reyes', fullName: 'Daniel Reyes' },
+    { firstName: 'Priya',  lastName: 'Anand', fullName: null },
+  ],
+  bankStatements: [
+    {
+      accountHolderName: 'Blue Oak Technologies LLC',
+      accountHolderState: 'California',
+      transactionsCsvUrls: [
+        'bank-6862-transactions-dec-2024.csv',
+        'bank-6862-transactions-nov-2024.csv',
+      ],
+    },
+  ],
+};
+
+/* Friendly names + grouping for every evidence.source enum value */
+const SOURCE_META = {
+  sosFiling:                { label: 'Secretary of State',                    group: 'government' },
+  tinCheck:                 { label: 'IRS / TIN check',                      group: 'government' },
+  clearCorporateFiling:     { label: 'CLEAR — Corporate filing',             group: 'clear' },
+  clearUccFiling:           { label: 'CLEAR — UCC filing',                   group: 'clear' },
+  clearLienJudgmentFiling:  { label: 'CLEAR — Lien/Judgment',                group: 'clear' },
+  clearBankruptcyFiling:    { label: 'CLEAR — Bankruptcy',                   group: 'clear' },
+  bankStatementHeader:      { label: 'Bank statement — Header',              group: 'bank' },
+  bankStatementDetails:     { label: 'Bank statement — Transactions',        group: 'bank' },
+  googleMaps:               { label: 'Google Maps',                          group: 'web' },
+  googleSearchNameState:    { label: 'Google Search (Name + State)',         group: 'web' },
+  googleSearchNameApplicant:{ label: 'Google Search (Name + Owner)',         group: 'web' },
+};
+
+const SOURCE_GROUPS = [
+  { id: 'government', label: 'Government',     icon: 'account_balance' },
+  { id: 'clear',      label: 'CLEAR Report',   icon: 'policy' },
+  { id: 'bank',       label: 'Bank Statement', icon: 'account_balance_wallet' },
+  { id: 'web',        label: 'Web Presence',   icon: 'public' },
+];
+
+const ev = (source, matchedValue, comparedValue, matchType, score, reference) =>
+  ({ source, matchedValue, comparedValue, matchType, score, reference });
+
+/* ---- Scenario: completed + manual-review (default) ---- */
+const RESULT_REVIEW = {
+  transactionState: 'completed',
+  summary: {
+    action: 'manual-review',
+    details: ['businessAddressVerified', 'ownershipVerified'],
+  },
+  checkListSummary: {
+    overall: {
+      businessNameVerified: 'Pass',
+      businessAddressVerified: 'Fail',
+      tinVerified: 'Pass',
+      ownershipVerified: 'Fail',
+      incorporationStatusActive: 'Pass',
+    },
+  },
+  details: {
+    businessName: {
+      verificationStatus: 'PASS',
+      identityResolution: {
+        resolvedName: 'Blue Oak Technologies, L.L.C.',
+        resolvedNameSource: 'sosFiling',
+        nameUpdated: true,
+      },
+      evidence: [
+        ev('sosFiling', 'Blue Oak Technologies, L.L.C.', 'Blue Oak Technologies LLC', 'exact', 1.0,
+          'CA-SOS entity 202104310482 · filing retrieved 2026-08-01T14:22:08Z'),
+        ev('clearCorporateFiling', 'BLUE OAK TECHNOLOGIES, L.L.C.', 'Blue Oak Technologies LLC', 'fuzzy', 0.94,
+          'CLEAR corp record c-88371-CA · normalized suffix mismatch (LLC vs L.L.C.)'),
+        ev('bankStatementHeader', 'BLUE OAK TECH LLC', 'Blue Oak Technologies LLC', 'fuzzy', 0.91,
+          'bank-6862-transactions-dec-2024.csv · header row accountHolderName'),
+        ev('googleSearchNameState', 'Blue Oak Technologies LLC — San Francisco, CA', 'Blue Oak Technologies LLC + California', 'exact', 1.0,
+          'serp query "Blue Oak Technologies LLC California" · result rank 1 · blueoaktech.com'),
+      ],
+    },
+    businessAddress: {
+      verificationStatus: 'FAIL',
+      matchType: 'fuzzyState',
+      evidence: [
+        ev('sosFiling', '916 J Street, Sacramento, CA 95814', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'fuzzy', 0.38,
+          'CA-SOS registered agent address · only state component matches'),
+        ev('googleMaps', '1458 Pacific Ave, San Francisco, CA 94109', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'fuzzy', 0.86,
+          'places result ChIJd8kL0aOAhYAR · listing has no suite number · category "Software company"'),
+        ev('clearCorporateFiling', null, '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'failed', null, null),
+      ],
+    },
+    tin: {
+      verificationStatus: 'PASS',
+      tinChecked: '842917465',
+      verifiedVia: 'tinCheck',
+      retriedWithResolvedName: true,
+      evidence: [
+        ev('tinCheck', '842917465 · BLUE OAK TECHNOLOGIES', '84-2917465 · Blue Oak Technologies LLC', 'exact', 1.0,
+          'IRS TIN match code 1 (name+TIN match) · retried with resolved name after initial code 5'),
+      ],
+    },
+    ownership: {
+      verificationStatus: 'FAIL',
+      owners: [
+        {
+          name: 'Daniel Reyes',
+          verificationStatus: 'PASS',
+          matchedSources: ['sosFiling', 'bankStatementDetails'],
+          evidence: [
+            ev('sosFiling', 'REYES, DANIEL — Managing Member', 'Daniel Reyes', 'exact', 1.0,
+              'CA-SOS Statement of Information SI-2025-114820 · officer list'),
+            ev('bankStatementDetails', 'ACH DEBIT — REYES DANIEL DRAW', 'Daniel Reyes', 'fuzzy', 0.88,
+              'bank-6862-transactions-nov-2024.csv · row 214 · description column'),
+          ],
+        },
+        {
+          name: 'Priya Anand',
+          verificationStatus: 'FAIL',
+          matchedSources: [],
+          evidence: [
+            ev('googleSearchNameApplicant', 'Priya Anand — Partner, Meridian Capital Group', 'Priya Anand + Blue Oak Technologies LLC', 'fuzzy', 0.44,
+              'serp query "Priya Anand Blue Oak Technologies" · no result links her to the business · best hit unrelated'),
+          ],
+        },
+      ],
+    },
+    incorporationStatus: {
+      verificationStatus: 'PASS',
+      reportedStatus: 'Active',
+      statusSource: 'sosFiling',
+      sosRetrievedWithResolvedName: true,
+      evidence: [
+        ev('sosFiling', 'Status: ACTIVE · registered 2021-06-14', 'California registry lookup', 'exact', 1.0,
+          'CA-SOS entity 202104310482 · status field · retrieved with resolved name'),
+      ],
+    },
+  },
+};
+
+/* ---- Scenario: completed + auto-approve (all pass) ---- */
+const RESULT_PASS = JSON.parse(JSON.stringify(RESULT_REVIEW));
+RESULT_PASS.summary = { action: 'auto-approve', details: [] };
+RESULT_PASS.checkListSummary.overall.businessAddressVerified = 'Pass';
+RESULT_PASS.checkListSummary.overall.ownershipVerified = 'Pass';
+RESULT_PASS.details.businessAddress = {
+  verificationStatus: 'PASS',
+  matchType: 'exact',
+  evidence: [
+    ev('sosFiling', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'exact', 1.0,
+      'CA-SOS principal office address · full component match'),
+    ev('bankStatementHeader', '1458 PACIFIC AVE STE 301, SAN FRANCISCO CA 94109', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'fuzzy', 0.96,
+      'bank-6862-transactions-dec-2024.csv · header row accountHolderAddress'),
+    ev('googleMaps', '1458 Pacific Ave #301, San Francisco, CA 94109', '1458 Pacific Avenue, Suite 301, San Francisco, CA 94109', 'fuzzy', 0.97,
+      'places result ChIJd8kL0aOAhYAR · listing verified · category "Software company"'),
+  ],
+};
+RESULT_PASS.details.ownership = {
+  verificationStatus: 'PASS',
+  owners: [
+    RESULT_REVIEW.details.ownership.owners[0],
+    {
+      name: 'Priya Anand',
+      verificationStatus: 'PASS',
+      matchedSources: ['sosFiling'],
+      evidence: [
+        ev('sosFiling', 'ANAND, PRIYA — Member', 'Priya Anand', 'exact', 1.0,
+          'CA-SOS Statement of Information SI-2025-114820 · officer list'),
+      ],
+    },
+  ],
+};
+
+/* ---- Scenario: still processing ---- */
+const RESULT_PROCESSING = {
+  transactionState: 'processing',
+  summary: null,
+  checkListSummary: null,
+  details: null,
+};
+
+/* ---- Scenario: KYB_VERIFICATION_FAILED webhook ---- */
+const RESULT_FAILED = {
+  transactionState: 'failed',
+  summary: null,
+  checkListSummary: null,
+  details: null,
+  error: {
+    message: 'Transactions CSV not downloadable',
+    detail: 'bank-6862-transactions-nov-2024.csv returned HTTP 403 from the signed URL. Bank-statement evidence (header and transactions) could not be evaluated.',
+    nextAction: 'Re-upload the bank statement CSVs or regenerate the signed URLs, then retry the transaction.',
+  },
+};
+
+const KYB_SCENARIOS = {
+  review: RESULT_REVIEW,
+  pass: RESULT_PASS,
+  processing: RESULT_PROCESSING,
+  failed: RESULT_FAILED,
+};
+
+/* The 5 output rows, mapped to checkListSummary.overall keys */
+const CHECKS = [
+  { id: 'businessName',        key: 'businessNameVerified',      label: 'Business Name' },
+  { id: 'businessAddress',     key: 'businessAddressVerified',   label: 'Business Address' },
+  { id: 'tin',                 key: 'tinVerified',               label: 'TIN' },
+  { id: 'ownership',           key: 'ownershipVerified',         label: 'Ownership' },
+  { id: 'incorporationStatus', key: 'incorporationStatusActive', label: 'Incorporation Status' },
+];
+
+const CHECK_LABELS = Object.fromEntries(CHECKS.map(c => [c.key, c.label]));
+
+let scenario = 'review';
+let activeCheck = 'businessName';
+
+const result = () => KYB_SCENARIOS[scenario];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* UI status per check: Pass / Review / Fail.
+   overall "Fail" reads as Review when routing is manual-review,
+   Fail when routing is auto-reject. */
+function checkStatus(check) {
+  const r = result();
+  if (!r.checkListSummary) return null;
+  const overall = r.checkListSummary.overall[check.key];
+  if (overall === 'Pass') return 'pass';
+  return r.summary.action === 'auto-reject' ? 'fail' : 'review';
+}
+const STATUS_TEXT = { pass: 'Pass', review: 'Review', fail: 'Fail' };
+
+function matchedSourceCount(check) {
+  const d = result().details?.[check.id];
+  if (!d) return 0;
+  const rows = check.id === 'ownership'
+    ? d.owners.flatMap(o => o.evidence)
+    : d.evidence;
+  return new Set(rows.filter(e => e.score >= 0.8).map(e => e.source)).size;
+}
+
+/* One-line "why" per check */
+function whyLine(check) {
+  const d = result().details?.[check.id];
+  if (!d) return '';
+  switch (check.id) {
+    case 'businessName': {
+      const n = matchedSourceCount(check);
+      const res = d.identityResolution;
+      return `Matched ${n} source${n === 1 ? '' : 's'}` +
+        (res?.nameUpdated ? ` · name resolved to “${res.resolvedName}” via ${SOURCE_META[res.resolvedNameSource].label}` : '');
+    }
+    case 'businessAddress':
+      if (d.matchType === 'exact') return 'Exact address match';
+      if (d.matchType === 'fuzzyState') return 'State-only corroboration — no source confirms the full street address';
+      return 'No corroborating source found';
+    case 'tin':
+      return d.verifiedVia
+        ? `Verified via ${SOURCE_META[d.verifiedVia].label}` +
+          (d.retriedWithResolvedName ? ' · retried with resolved business name' : '')
+        : 'TIN could not be verified against any source';
+    case 'ownership': {
+      const total = d.owners.length;
+      const passed = d.owners.filter(o => o.verificationStatus === 'PASS').length;
+      const failedNames = d.owners.filter(o => o.verificationStatus !== 'PASS').map(o => o.name);
+      return `Owners matched: ${passed} / ${total}` +
+        (failedNames.length ? ` — ${failedNames.join(', ')} not found in any source` : '');
+    }
+    case 'incorporationStatus':
+      return d.statusSource
+        ? `Reported status “${d.reportedStatus}” from ${SOURCE_META[d.statusSource].label}` +
+          (d.sosRetrievedWithResolvedName ? ' · retrieved with resolved name' : '')
+        : 'Incorporation status unavailable';
+  }
+  return '';
+}
+
+/* ============ Summary strip ============ */
+const ACTION_META = {
+  'auto-approve':  { label: 'Auto approve',  badge: 'badge-pass' },
+  'manual-review': { label: 'Manual review', badge: 'badge-review' },
+  'auto-reject':   { label: 'Auto reject',   badge: 'badge-fail' },
+};
+
+function renderSummaryStrip() {
+  const r = result();
+  const el = document.getElementById('kybSummaryStrip');
+  if (r.transactionState === 'processing') {
+    el.innerHTML = `
+      <span class="group"><span class="label">Transaction state:</span>
+        <span class="processing-chip"><span class="spin"></span><span class="value">Processing</span></span></span>
+      <span class="group"><span class="label">Routing action:</span><span class="value" style="color:var(--color-text-tertiary)">Pending</span></span>`;
+    return;
+  }
+  if (r.transactionState === 'failed') {
+    el.innerHTML = `
+      <span class="group"><span class="label">Transaction state:</span><span class="badge badge-fail">Failed</span></span>
+      <span class="group"><span class="label">Routing action:</span><span class="value" style="color:var(--color-text-tertiary)">—</span></span>`;
+    return;
+  }
+  const action = ACTION_META[r.summary.action];
+  el.innerHTML = `
+    <span class="group"><span class="label">Transaction state:</span><span class="value">Completed</span></span>
+    <span class="group"><span class="label">Routing action:</span><span class="badge ${action.badge}">${action.label}</span></span>`;
+}
+
+/* ============ Inputs column ============ */
+/* One flat table: business fields, then owners, then the bank account
+   holder — file chips sit below, mirroring the CLEAR inputs layout. */
+function renderInputs() {
+  const kvRow = (k, v) => `
+    <div class="kv-row"><span class="k">${esc(k)}</span>
+      <span class="v ${v == null || v === '' ? 'empty' : ''}">${v == null || v === '' ? 'Not provided' : esc(v)}</span></div>`;
+
+  const b = REQUEST.business;
+  document.getElementById('kybInputKv').innerHTML =
+    kvRow('Legal name', b.legalName) +
+    kvRow('DBA', b.dba) +
+    kvRow('TIN / EIN', b.tin) +
+    kvRow('Full address', b.address.fullAddress) +
+    kvRow('City', b.address.city) +
+    kvRow('State', b.address.state) +
+    kvRow('ZIP', b.address.zip) +
+    REQUEST.owners.map((o, i) =>
+      kvRow(`Owner ${i + 1}`, o.fullName || `${o.firstName} ${o.lastName}`)).join('') +
+    REQUEST.bankStatements.map(a =>
+      kvRow('Account holder name', a.accountHolderName) +
+      kvRow('Account holder state', a.accountHolderState)).join('');
+
+  document.getElementById('kybFileUploads').innerHTML =
+    '<p class="hv-overline">File Uploads</p>' +
+    REQUEST.bankStatements.flatMap(a => a.transactionsCsvUrls).map(u => `
+      <div class="file-chip"><span class="file-type-tag">csv</span>${esc(u)}</div>`).join('');
+}
+
+/* ============ Outputs column ============ */
+function renderOutputs() {
+  const r = result();
+  const banner = document.getElementById('kybOutputBanner');
+  const list = document.getElementById('kybOutputList');
+
+  banner.innerHTML = r.transactionState === 'failed' ? `
+    <div class="error-banner">
+      <span class="material-symbols-rounded">error</span>
+      <div>
+        <h5>KYB could not be completed</h5>
+        <p><strong>${esc(r.error.message)}.</strong> ${esc(r.error.detail)}</p>
+        <p class="next-action">Next action: ${esc(r.error.nextAction)}</p>
+      </div>
+    </div>` : '';
+
+  const done = r.transactionState === 'completed';
+  list.innerHTML = CHECKS.map(c => {
+    const status = checkStatus(c);
+    let sub, statusHtml;
+    if (!done) {
+      sub = 'No details yet';
+      statusHtml = `<span class="result result-muted">${r.transactionState === 'processing' ? 'Processing' : '—'}</span>`;
+    } else {
+      const n = matchedSourceCount(c);
+      sub = c.id === 'ownership'
+        ? (() => { const os = r.details.ownership.owners;
+            return `Owners matched ${os.filter(o => o.verificationStatus === 'PASS').length} of ${os.length}`; })()
+        : `Matched ${n} source${n === 1 ? '' : 's'}`;
+      statusHtml = `<span class="result result-${status}">${STATUS_TEXT[status]}</span>`;
+    }
+    return `
+      <button class="output-row" data-check="${c.id}" ${done ? '' : 'aria-disabled="true"'}>
+        <span class="row-main">
+          <span class="row-title">${c.label}</span>
+          <span class="row-sub" style="display:block">${esc(sub)}</span>
+        </span>
+        <span class="row-end">
+          ${statusHtml}
+          ${done ? '<span class="material-symbols-rounded row-chevron">chevron_right</span>' : ''}
+        </span>
+      </button>`;
+  }).join('');
+
+  if (done) {
+    list.querySelectorAll('.output-row').forEach(row =>
+      row.addEventListener('click', () => openKybDrawer(row.dataset.check)));
+  }
+}
+
+/* ============ Drawer ============ */
+/* All five checks render stacked in one scrolling column; the rail is a
+   scroll-to control with a scroll-spy, mirroring the CLEAR drawer. */
+let railScrollLock = false;
+
+function setActiveRail(checkId) {
+  activeCheck = checkId;
+  document.querySelectorAll('#kybCheckRail .rail-item').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.check === checkId));
+}
+
+function scrollToCheck(checkId, smooth) {
+  const content = document.getElementById('kybDrawerContent');
+  const target = document.getElementById('kybCheck-' + checkId);
+  if (!target) return;
+  if (smooth) {
+    content.scrollTo({ top: target.offsetTop - 24, behavior: 'smooth' });
+  } else {
+    /* The base .drawer-content carries scroll-behavior: smooth, and Chrome
+       cancels that animation while the drawer's slide-in transform runs —
+       force an instant jump instead. */
+    content.style.scrollBehavior = 'auto';
+    content.scrollTop = target.offsetTop - 24;
+    content.style.scrollBehavior = '';
+  }
+}
+
+function renderRail() {
+  const rail = document.getElementById('kybCheckRail');
+  rail.innerHTML =
+    '<p class="hv-overline">KYB checks</p>' +
+    CHECKS.map(c => {
+      const s = checkStatus(c);
+      return `
+        <button class="rail-item ${c.id === activeCheck ? 'active' : ''}" data-check="${c.id}">
+          ${c.label}
+          <span class="rail-status result-${s}">${STATUS_TEXT[s]}</span>
+        </button>`;
+    }).join('');
+  rail.querySelectorAll('.rail-item').forEach(btn =>
+    btn.addEventListener('click', () => {
+      setActiveRail(btn.dataset.check);
+      railScrollLock = true;
+      scrollToCheck(btn.dataset.check, true);
+      setTimeout(() => { railScrollLock = false; }, 700);
+    }));
+}
+
+/* One CLEAR-style table for a check's evidence. The source groups
+   (Government / CLEAR Report / Bank Statement / Web Presence) become the
+   Source column; match type and score are separate columns. Rows keep
+   the raw API reference string as a hover tooltip. */
+function evidenceTableHtml(evidence) {
+  if (!evidence.length) return `
+    <div class="no-records neutral">
+      <span class="material-symbols-rounded">search_off</span>
+      No corroborating source found for this check.
+    </div>`;
+  const ordered = SOURCE_GROUPS.flatMap(g =>
+    evidence.filter(e => SOURCE_META[e.source].group === g.id).map(e => ({ e, g })));
+  return `
+    <div class="detail-table-wrap">
+      <table class="detail-table">
+        <thead><tr>
+          <th>Source${srcTag(['ui', 'grouping of evidence[].source'])}</th>
+          <th>Record${srcTag(['res', 'evidence[].source'])}</th>
+          <th>Compared${srcTag(['res', 'evidence[].comparedValue'])}</th>
+          <th>Matched${srcTag(['res', 'evidence[].matchedValue'])}</th>
+          <th>Match Type${srcTag(['res', 'evidence[].matchType'])}</th>
+          <th>Match Score${srcTag(['res', 'evidence[].score'])}</th>
+        </tr></thead>
+        <tbody>
+          ${ordered.map(({ e, g }) => e.matchType === 'failed' ? `
+            <tr class="failed">
+              <td>${g.label}</td>
+              <td>${SOURCE_META[e.source].label}</td>
+              <td>${esc(e.comparedValue)}</td>
+              <td>—</td>
+              <td><span class="match-badge failed">Failed</span></td>
+              <td>—</td>
+            </tr>` : `
+            <tr title="${esc(e.reference)}">
+              <td>${g.label}</td>
+              <td>${SOURCE_META[e.source].label}</td>
+              <td>${esc(e.comparedValue)}</td>
+              <td>${esc(e.matchedValue)}</td>
+              <td><span class="match-badge ${e.matchType}">${e.matchType === 'exact' ? 'Exact' : 'Fuzzy'}</span></td>
+              <td>${Math.round(e.score * 100)}%</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function mapEmbedHtml() {
+  const a = REQUEST.business.address;
+  const q = encodeURIComponent(`${a.fullAddress}, ${a.city}, ${a.state} ${a.zip}`);
+  return `
+    <div class="map-embed">
+      <iframe src="https://www.google.com/maps?q=${q}&output=embed" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade" title="Google Maps — submitted business address"></iframe>
+      <p class="map-caption">Google Maps evidence — submitted address as resolved by Places. Drag and zoom to inspect the location.${srcTag(['ui', 'embed built from business.address — API returns only the googleMaps evidence row'])}</p>
+    </div>`;
+}
+
+/* tag: [cls, path] — provenance annotation, e.g. ['req', 'business.legalName'] */
+const srcTag = (tag) => tag ? `<span class="src-tag ${tag[0]}">${esc(tag[1])}</span>` : '';
+
+function ownerBlocksHtml(d) {
+  return d.owners.map((o, i) => `
+      <div class="owner-section">
+        <h4 class="owner-title">${esc(o.name)}<span class="owner-order">Owner ${i + 1}</span></h4>
+        ${o.evidence.length
+          ? evidenceTableHtml(o.evidence)
+          : `<div class="no-records neutral"><span class="material-symbols-rounded">search_off</span>
+               No source places ${esc(o.name)} at this business.</div>`}
+      </div>`).join('');
+}
+
+function checkSectionHtml(check) {
+  const d = result().details[check.id];
+
+  const evidenceSection = check.id === 'ownership'
+    ? ownerBlocksHtml(d)
+    : evidenceTableHtml(d.evidence) +
+      (check.id === 'businessAddress' && d.evidence.some(e => e.source === 'googleMaps')
+        ? mapEmbedHtml() : '');
+
+  const sourceCount = new Set(
+    (check.id === 'ownership' ? d.owners.flatMap(o => o.evidence) : d.evidence).map(e => e.source)
+  ).size;
+
+  return `
+    <section class="detail-section kyb-check-section" id="kybCheck-${check.id}">
+      <div class="detail-section-header">
+        <span class="material-symbols-rounded">keyboard_arrow_down</span>
+        <h3>${check.label}</h3>
+        <span class="check-count">· ${sourceCount} source${sourceCount === 1 ? '' : 's'}</span>
+      </div>
+      <div class="detail-section-body">
+        ${evidenceSection}
+      </div>
+    </section>`;
+}
+
+function renderDrawerContent() {
+  const content = document.getElementById('kybDrawerContent');
+  content.innerHTML = `
+    <div class="src-legend">
+      <span class="src-tag req">request payload</span> submitted by the client
+      <span class="src-tag res">result payload</span> returned by the KYB API
+      <span class="src-tag ui">ui</span> derived or added in this UI, not in the API
+    </div>` + CHECKS.map(checkSectionHtml).join('');
+
+  content.querySelectorAll('.detail-section-header').forEach(h =>
+    h.addEventListener('click', () => h.closest('.detail-section').classList.toggle('collapsed')));
+}
+
+/* Scroll-spy: the active rail item follows the section under the top
+   third of the drawer viewport. */
+document.getElementById('kybDrawerContent').addEventListener('scroll', () => {
+  if (railScrollLock) return;
+  const content = document.getElementById('kybDrawerContent');
+  const threshold = content.scrollTop + content.clientHeight / 3;
+  let current = CHECKS[0].id;
+  for (const c of CHECKS) {
+    const sec = document.getElementById('kybCheck-' + c.id);
+    if (sec && sec.offsetTop <= threshold) current = c.id;
+  }
+  if (current !== activeCheck) setActiveRail(current);
+}, { passive: true });
+
+const kybDrawer = document.getElementById('kybDrawer');
+const kybScrim = document.getElementById('kybDrawerScrim');
+
+function openKybDrawer(checkId) {
+  activeCheck = checkId;
+  renderRail(); renderDrawerContent();
+  kybDrawer.classList.add('open');
+  kybScrim.classList.add('open');
+  /* Jump straight to the clicked check. Re-assert after the slide-in
+     transition in case layout settles late on first open. */
+  railScrollLock = true;
+  scrollToCheck(checkId, false);
+  setTimeout(() => {
+    scrollToCheck(checkId, false);
+    railScrollLock = false;
+  }, 350);
+}
+function closeKybDrawer() {
+  kybDrawer.classList.remove('open');
+  kybScrim.classList.remove('open');
+}
+document.getElementById('kybDrawerClose').addEventListener('click', closeKybDrawer);
+kybScrim.addEventListener('click', closeKybDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeKybDrawer(); });
+
+/* ---- Data provenance toggle ---- */
+const annotateSwitch = document.getElementById('kybAnnotateSwitch');
+annotateSwitch.addEventListener('click', () => {
+  const on = annotateSwitch.classList.toggle('on');
+  document.body.classList.toggle('kyb-annotate', on);
+});
+
+/* ---- KYB scenario switch (shares the prototype panel) ---- */
+document.querySelectorAll('#kybScenarioOpts button').forEach(btn =>
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#kybScenarioOpts button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    scenario = btn.dataset.scenario;
+    closeKybDrawer();
+    renderKyb();
+  }));
+
+function renderKyb() {
+  renderSummaryStrip();
+  renderInputs();
+  renderOutputs();
+}
+renderKyb();
+
+/* =====================================================================
+   Module nav: left-panel items scroll to their card; a scroll-spy
+   keeps the active state in sync while the page scrolls.
+   ===================================================================== */
+const moduleNavs = [...document.querySelectorAll('.module-nav')];
+const setActiveNav = (id) => moduleNavs.forEach(n =>
+  n.classList.toggle('active', n.dataset.module === id));
+
+let navScrollLock = false;
+moduleNavs.forEach(nav =>
+  nav.addEventListener('click', () => {
+    setActiveNav(nav.dataset.module);
+    navScrollLock = true;
+    document.getElementById(nav.dataset.module).scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { navScrollLock = false; }, 700);
+  }));
+
+window.addEventListener('scroll', () => {
+  if (navScrollLock) return;
+  /* Active = the last module whose top has crossed the upper third of the
+     viewport; falls back to the first module before any have crossed. */
+  let current = moduleNavs[0]?.dataset.module;
+  for (const nav of moduleNavs) {
+    const card = document.getElementById(nav.dataset.module);
+    if (card.getBoundingClientRect().top <= window.innerHeight / 3) current = nav.dataset.module;
+  }
+  setActiveNav(current);
+}, { passive: true });
+
+})();
 </script>
 </body>
 </html>
