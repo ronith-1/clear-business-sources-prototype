@@ -1204,6 +1204,37 @@ body.hide-subtext .biz-relation { display: none; }
 /* KYB inputs: one flat table (no tabs), so all four corners are rounded */
 .kv-table.kyb-kv { border-radius: var(--radius-md); }
 
+/* ---- Web Presence module (Adverse Media design) ---- */
+.attempt-tab .fail-icon { color: var(--color-fail); font-size: 18px; font-variation-settings: 'FILL' 1; }
+.col-head { display: flex; align-items: center; justify-content: space-between; }
+.ext-link {
+  border: none; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+  font: var(--font-body2-medium); color: var(--color-brand-primary);
+}
+.ext-link .material-symbols-rounded { font-size: 16px; }
+.kv-row .k .info-icon { font-size: 14px; color: var(--color-text-tertiary); vertical-align: middle; margin-left: 4px; }
+.kv-row .v.chips {
+  display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end;
+  font: var(--font-body2);
+}
+.wp-media-section { padding: 0 24px 24px; }
+.wp-media-section .col-head { margin-bottom: 8px; }
+.media-table .media-title { max-width: 340px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.media-table tr.extra { display: none; }
+.media-table.expanded tr.extra { display: table-row; }
+.show-all {
+  display: flex; align-items: center; gap: 4px;
+  width: 100%;
+  border: none; background: var(--color-surface-white); cursor: pointer;
+  font: var(--font-body2-medium); color: var(--color-brand-primary);
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+.show-all .material-symbols-rounded { font-size: 18px; transition: transform 0.2s ease; }
+.show-all.open .material-symbols-rounded { transform: rotate(90deg); }
+
 /* KYB drawer: all five checks stacked in one scrolling column, each a
    collapsible .detail-section exactly like the CLEAR drawer. */
 .kyb-drawer .drawer-content { position: relative; }
@@ -1406,7 +1437,8 @@ body.kyb-annotate .src-legend { display: flex; }
     </div>
     <div class="section">
       <p class="hv-overline">Modules Used</p>
-      <button class="nav-item module-nav active" data-module="moduleClear"><span class="material-symbols-rounded">policy</span> CLEAR Analysis</button>
+      <button class="nav-item module-nav active" data-module="moduleWebPresence"><span class="material-symbols-rounded">public</span> Web Presence</button>
+      <button class="nav-item module-nav" data-module="moduleClear"><span class="material-symbols-rounded">policy</span> CLEAR Analysis</button>
       <button class="nav-item module-nav" data-module="moduleKyb"><span class="material-symbols-rounded">verified</span> KYB Verification</button>
     </div>
   </aside>
@@ -1415,6 +1447,95 @@ body.kyb-annotate .src-legend { display: flex; }
   <div class="main-col">
 
   <!-- CLEAR Analysis module card -->
+  <!-- Web Presence module (Adverse Media) -->
+  <section class="main-card hv-card" id="moduleWebPresence">
+    <div class="module-header">
+      <div class="module-icon"><span class="material-symbols-rounded">public</span></div>
+      <h2 class="module-title">Web Presence</h2>
+    </div>
+
+    <div class="attempt-tabs">
+      <button class="attempt-tab active">
+        <span class="material-symbols-rounded check-icon">check_circle</span> 3rd attempt (latest)
+      </button>
+      <button class="attempt-tab">
+        <span class="material-symbols-rounded fail-icon">cancel</span> 2nd attempt
+      </button>
+      <button class="attempt-tab">
+        <span class="material-symbols-rounded fail-icon">cancel</span> 1st attempt
+      </button>
+    </div>
+
+    <div class="attempt-meta">
+      <span><span class="label">Attempted at:</span> <span class="value">11:17 pm, Feb 27, 2025</span></span>
+      <span><span class="label">via</span> <span class="value">UPI Method</span></span>
+    </div>
+
+    <div class="module-body">
+      <!-- Inputs -->
+      <section class="io-col">
+        <p class="hv-overline">Inputs</p>
+        <div class="kv-table kyb-kv">
+          <div class="kv-row"><span class="k">Legal Name</span><span class="v">Blue Oak Technologies LLC</span></div>
+          <div class="kv-row"><span class="k">DBA</span><span class="v">Blue Oak Systems</span></div>
+          <div class="kv-row"><span class="k">Owner Name</span><span class="v empty">-</span></div>
+          <div class="kv-row"><span class="k">Location</span><span class="v">San Francisco, CA<br>94109</span></div>
+        </div>
+      </section>
+
+      <!-- Results -->
+      <section class="io-col">
+        <div class="col-head">
+          <p class="hv-overline">Results</p>
+          <button class="ext-link">Document deep dive <span class="material-symbols-rounded">arrow_outward</span></button>
+        </div>
+        <div class="kv-table kyb-kv">
+          <div class="kv-row"><span class="k">Risk</span><span class="v"><span class="result result-fail">High Risk</span></span></div>
+          <div class="kv-row"><span class="k">Media Detected</span><span class="v">5</span></div>
+          <div class="kv-row">
+            <span class="k">Detected Adversity<span class="material-symbols-rounded info-icon">info</span></span>
+            <span class="v chips">
+              <span class="badge badge-fail">Tamper</span>
+              <span class="badge badge-fail">Incorrect payments</span>
+              <span class="badge badge-fail">Fraud</span>
+              <span class="badge badge-fail">Child Abuse</span>
+              <span class="badge badge-fail">+2 more</span>
+            </span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Media summary -->
+    <div class="wp-media-section">
+      <div class="col-head">
+        <p class="hv-overline">Media Summary</p>
+        <button class="ext-link">See all transactions <span class="material-symbols-rounded">arrow_outward</span></button>
+      </div>
+      <div class="detail-table-wrap">
+        <table class="detail-table media-table">
+          <thead><tr>
+            <th></th><th>Date</th><th>Source</th><th>Risk</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="media-title" title="Court fight erupts over millions in alleged undisclosed liabilities">Court fight erupts over millions in alle...</td><td>2026-01-07</td><td>wowt.com</td><td><span class="result result-fail">High</span></td></tr>
+            <tr><td class="media-title" title="USA v. Ryan Scott, No. 18-30885 (5th Cir. 2019)">USA v. Ryan Scott, No. 18-30885 (5th...</td><td>2019-11-01</td><td>law.justia.com</td><td><span class="result result-fail">High</span></td></tr>
+            <tr><td class="media-title" title="March 29, 2022 Journal — CITY OF OMAHA proceedings">March 29, 2022 Journal – CITY OF OM...</td><td>2022-03-29</td><td>cityclerk.cityofomaha...</td><td><span class="result result-fail">High</span></td></tr>
+            <tr><td class="media-title" title="Pending Payment Confirmation Report — Nebraska LCC">Pending Payment Confirmation Repor...</td><td>2025-09-18</td><td>lcc.nebraska.gov</td><td><span class="result result-fail">High</span></td></tr>
+            <tr><td class="media-title" title="JOURNAL RECORD">JOURNAL RECORD</td><td>2017-11-20</td><td>journalrecord.com</td><td><span class="result result-fail">High</span></td></tr>
+            <tr class="extra"><td class="media-title" title="Blue Oak Technologies expands Bay Area operations">Blue Oak Technologies expands Bay A...</td><td>2024-06-14</td><td>sfchronicle.com</td><td><span class="result result-pass">Low</span></td></tr>
+            <tr class="extra"><td class="media-title" title="Owner profile: Daniel Reyes on fintech lending">Owner profile: Daniel Reyes on fintech...</td><td>2023-02-08</td><td>medium.com</td><td><span class="result result-pass">Low</span></td></tr>
+            <tr class="extra"><td class="media-title" title="Complaint thread: delayed vendor payments">Complaint thread: delayed vendor pay...</td><td>2021-05-30</td><td>bbb.org</td><td><span class="result result-review">Medium</span></td></tr>
+          </tbody>
+        </table>
+        <button class="show-all" id="wpShowAll">
+          <span class="material-symbols-rounded">arrow_right</span>
+          <span class="sa-label">Show all</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <main class="main-card hv-card" id="moduleClear">
     <div class="module-header">
       <div class="module-icon"><span class="material-symbols-rounded">contact_page</span></div>
@@ -3350,6 +3471,14 @@ function renderKyb() {
   renderOutputs();
 }
 renderKyb();
+
+/* ---- Web Presence: Show all toggle on the media summary ---- */
+document.getElementById('wpShowAll').addEventListener('click', () => {
+  const btn = document.getElementById('wpShowAll');
+  const on = document.querySelector('.media-table').classList.toggle('expanded');
+  btn.classList.toggle('open', on);
+  btn.querySelector('.sa-label').textContent = on ? 'Show less' : 'Show all';
+});
 
 /* =====================================================================
    Module nav: left-panel items scroll to their card; a scroll-spy
