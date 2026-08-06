@@ -217,10 +217,6 @@ table.addEventListener('mouseover', e => {
   clearTimeout(disarmTimer);
   scheduleArm();
 });
-table.addEventListener('mousemove', e => {
-  if (!hoverRow || !hoverRow.contains(e.target)) return;
-  if (!table.classList.contains('focus-armed')) scheduleArm();
-});
 table.addEventListener('mouseout', e => {
   if (!hoverRow) return;
   const to = e.relatedTarget;
