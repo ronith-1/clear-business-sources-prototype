@@ -37,8 +37,7 @@
    and below. Record a 1280x720 region centered on the card. */
 body {
   font: var(--font-body1);
-  background-color: #f4f4f4;
-  background-image: radial-gradient(circle, #DADCE2 1.2px, transparent 1.2px);
+   background-color: #F6F7FF;
   background-size: 24px 24px;
   height: 100vh;
   display: flex;
@@ -50,7 +49,7 @@ body {
 .card {
   background: var(--color-surface-white);
   border-radius: 12px;
-  box-shadow: 0 12px 24px rgba(23, 28, 38, 0.09), 0 2px 8px rgba(23, 28, 38, 0);
+  box-shadow: 0 12px 24px rgba(23, 28, 38, 0.075), 0 2px 8px rgba(23, 28, 38, 0);
   padding: 40px;
   width: 100%;
   max-width: 1040px;
@@ -107,8 +106,10 @@ body {
 .val-diff { visibility: hidden; }
 
 /* Focus-on-hover: armed by JS after a stationary hover on one row */
-.detail-table th, .detail-table td { transition: opacity 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease; }
-.detail-table tbody tr { transition: transform 0.15s ease, background 0.15s ease; }
+/* Lift motion: transform and its shadow share a longer decelerating
+   curve so the scale eases into place; the fade stays a touch quicker. */
+.detail-table th, .detail-table td { transition: opacity 0.25s ease, background 0.2s ease, box-shadow 0.35s cubic-bezier(0.32, 0.72, 0, 1), transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
+.detail-table tbody tr { transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1), background 0.2s ease; }
 .detail-table.focus-armed:has(tbody tr:hover) thead th,
 .detail-table.focus-armed:has(tbody tr:hover) tbody tr:not(:hover) td { opacity: 0.2; }
 .detail-table.focus-armed tbody tr:hover { transform: scale(1.01); }
